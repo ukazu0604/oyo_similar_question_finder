@@ -58,7 +58,7 @@ def main():
 
         # 3. pytestを実行
         print("pytestを実行します...")
-        exit_code = pytest.main(["-v", "test_main_page.py"])
+        exit_code = pytest.main(["-v", "test_main_page.py", "test_ui_interactions.py", "test_mobile_view.py"])
 
         # 4. スクリプト全体の終了コードをpytestの結果に合わせる
         if exit_code != 0:
