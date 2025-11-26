@@ -1,0 +1,358 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  padding: 20px;
+}
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  overflow: hidden;
+}
+.header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 30px 20px;
+  text-align: center;
+}
+.header h1 {
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+.header p {
+  font-size: 14px;
+  opacity: 0.9;
+}
+.header-info-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f8f9fa;
+  padding: 10px 20px;
+  border-bottom: 1px solid #e0e0e0;
+  font-size: 13px;
+  color: #666;
+  flex-wrap: wrap; /* 画面が狭い時に折り返す */
+  gap: 10px;
+}
+.model-info {
+  padding: 0;
+  border-bottom: none;
+}
+.total-reactions span {
+  margin: 0 4px;
+}
+.major-category {
+  border-bottom: 1px solid #e0e0e0;
+}
+.major-title {
+  background: #f8f9fa;
+  padding: 15px 20px;
+  font-weight: bold;
+  color: #333;
+  font-size: 16px;
+}
+.middle-category-item {
+  border-bottom: 1px solid #f0f0f0;
+}
+.middle-category-link {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  text-decoration: none;
+  color: #333;
+  transition: background 0.2s;
+}
+.middle-category-link:hover { background: #f8f9fa; }
+.middle-category-link:active { background: #e9ecef; }
+.category-name { font-size: 15px; }
+.problem-count {
+  background: #667eea;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+}
+.arrow { color: #999; font-size: 18px; }
+.category-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.reaction-summary {
+  display: flex;
+  gap: 8px;
+  font-size: 12px;
+  color: #666;
+  background-color: #f0f0f0;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+/* 詳細ページ */
+#detail-view {
+  display: none;
+  background: #f5f5f5;
+  min-height: 100vh;
+}
+.detail-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 20px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+.back-button {
+  display: inline-block;
+  color: white;
+  text-decoration: none;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+.detail-header h1 { font-size: 20px; }
+.detail-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+.problem-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.problem-panel {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.2s;
+  position: relative; /* check-containerの配置基準にする */
+}
+.problem-panel:hover {
+  transform: translateY(-3px);
+}
+.main-problem {
+  border-left: 4px solid #667eea;
+  padding-left: 16px;
+  margin-bottom: 20px;
+}
+.problem-number { font-size: 12px; color: #999; margin-bottom: 5px; }
+.problem-title { font-size: 16px; font-weight: bold; color: #333; margin-bottom: 8px; }
+.problem-source { font-size: 12px; color: #999; display: flex; align-items: center; }
+.similar-section { margin-top: 20px; padding-top: 20px; border-top: 1px solid #e0e0e0; }
+.similar-toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  padding: 0 4px;
+  margin-bottom: 15px;
+}
+.similar-toggle:hover .similar-title {
+  color: #667eea;
+}
+.similar-title { font-size: 14px; color: #666; margin-bottom: 15px; font-weight: bold; }
+.average-similarity {
+  font-size: 12px;
+  color: #666; /* 矢印など他の要素と色を統一 */
+  font-weight: 500; /* 少しだけ太くして視認性を上げる */
+  margin-left: auto; /* これでタイトルと矢印の間に配置 */
+  margin-right: 12px;
+}
+.similar-title { margin-bottom: 0; transition: color 0.2s; }
+.toggle-arrow { font-size: 12px; color: #666; }
+.similar-item {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 10px;
+  padding: 10px; /* 類似問題パネルの余白を少し詰める */
+  margin-bottom: 8px; /* 類似問題パネル下の余白を少し詰める */
+  border: 1px solid #e0e0e0;
+}
+.similar-item:hover {
+  border-color: #667eea;
+}
+.similarity-badge {
+  display: inline-block;
+  background: #667eea;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  margin-bottom: 5px;
+}
+
+/* レスポンシブ対応 (スマートフォン向け) */
+@media (max-width: 768px) {
+  body {
+    padding: 0;
+  }
+  .container {
+    border-radius: 0;
+    min-height: 100vh;
+  }
+  .header {
+    padding: 20px 15px;
+  }
+  .header h1 {
+    font-size: 20px;
+  }
+  .header-info-container {
+    justify-content: center; /* スマホ表示では中央揃え */
+    padding: 10px 15px;
+  }
+  .detail-container {
+    padding: 15px;
+  }
+  .problem-card {
+    padding: 15px;
+    margin-bottom: 15px;
+  }
+  .main-problem {
+    padding-left: 12px;
+  }
+}
+
+/* ここから追加・変更したスタイル */
+.problem-meta {
+  font-size: 12px; /* problem-sourceと同じサイズに */
+  color: #999;    /* problem-sourceと同じ色に */
+}
+.check-container {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  display: flex;
+  gap: 4px;
+}
+.check-box {
+  width: 24px; /* 大きく */
+  height: 24px; /* 大きく */
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  cursor: pointer;
+  background-color: #f0f0f0;
+  position: relative; /* チェックマークの位置基準にする */
+  line-height: 24px; /* チェックマークを上下中央に配置しやすくする */
+  text-align: center; /* チェックマークを左右中央に配置しやすくする */
+}
+.check-box.checked::after {
+  content: '✔'; /* 表示するチェックマーク */
+  color: rgba(0, 0, 0, 0.6); /* チェックマークの色を少し濃く */
+  font-weight: bold;
+  font-size: 18px; /* 大きく */
+}
+
+.check-box.checked.c0 { background-color: #ffadad; } /* Red */
+.check-box.checked.c1 { background-color: #ffd6a5; } /* Orange */
+.check-box.checked.c2 { background-color: #fdffb6; } /* Yellow */
+.check-box.checked.c3 { background-color: #caffbf; } /* Green */
+.sort-options {
+  padding: 10px 15px;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.reaction-container {
+  display: flex;
+  align-items: center;
+  gap: 5px; /* ボタンとカウントの間のスペース */
+  font-size: 12px;
+  margin-left: 5px; /* 出典テキストとの間に少し余白 */
+}
+.reaction-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-size: 16px;
+}
+.reaction-button + .reaction-count {
+  margin-left: -2px; /* ボタンとカウントの間のスペースを少し詰める */
+}
+
+/* 復習が必要な問題のハイライト */
+.problem-card.needs-review {
+  border: 2px solid #ff9800; /* オレンジ色の枠線 */
+  box-shadow: 0 0 12px rgba(255, 152, 0, 0.6); /* オレンジ色のグロー効果 */
+}
+
+/* トップページで復習項目があるカテゴリをハイライト */
+.middle-category-link.has-review-items .category-name::before {
+  content: '●';
+  color: #ff9800; /* オレンジ色 */
+  margin-right: 8px;
+  font-size: 12px;
+}
+
+/* トップページの復習カウント */
+.review-count {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: bold;
+  background-color: #ffe8cc; /* 薄いオレンジ */
+  color: #ff6f00;
+  line-height: 1.5; /* 絵文字と高さを合わせる */
+}
+
+.large-category-summary {
+  white-space: nowrap; /* スマホで改行されないように */
+}
+
+/* トップページの総合復習カウント */
+#total-review-summary .review-count {
+  font-size: 13px;
+  padding: 4px 12px;
+  border-radius: 12px;
+}
+
+/* 全体進捗バー */
+#total-progress-container {
+  padding: 15px 20px;
+  background-color: #f8f9fa;
+}
+.progress-bar-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.progress-bar {
+  flex-grow: 1;
+  height: 18px;
+  background-color: #e9ecef;
+  border-radius: 9px;
+  overflow: hidden;
+}
+.progress-bar-inner {
+  height: 100%;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  border-radius: 9px;
+  transition: width 0.5s ease-in-out;
+}
+.progress-text {
+  font-size: 13px;
+  font-weight: bold;
+  color: #495057;
+  white-space: nowrap;
+}
+.progress-percentage {
+  background-color: #e9ecef;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: bold;
+  color: #495057;
+}

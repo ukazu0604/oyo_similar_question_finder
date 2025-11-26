@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>応用情報技術者試験 類似問題ファインダー</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- favicon.ico の404エラーを防ぐためのダミー指定 -->
+  <link rel="icon" href="data:,">
+</head>
+
+<body>
+  <div class="container" id="index-view">
+    <div class="header">
+      <h1>📚 類似問題ファインダー</h1>
+      <p>応用情報技術者試験</p>
+    </div>
+    <div id="total-progress-container"></div>
+    <div class="header-info-container">
+      <div class="model-info" id="model-info">読み込み中...</div>
+      <div id="total-review-summary"></div>
+      <div class="total-reactions" id="total-reactions"></div>
+    </div>
+    <div id="category-list"></div>
+    <div style="text-align: center; padding: 20px;">
+      <button id="reset-storage-button">チェック状態をリセット</button>
+    </div>
+  </div>
+
+  <div id="detail-view">
+    <div class="detail-header">
+      <a href="#" class="back-button" id="back-button">‹ 戻る</a>
+      <h1 id="detail-title"></h1>
+    </div>
+    <div class="sort-options">
+      <label for="sort-order">並び順:</label>
+      <select id="sort-order">
+        <option value="default">問題順</option>
+        <option value="review-first">復習優先</option>
+        <option value="ref-desc">被参照カウント順</option>
+        <option value="fear-desc">恐怖カウント順</option>
+        <option value="oshi-desc">推しカウント順</option>
+        <option value="like-desc">いいねカウント順</option>
+      </select>
+      <label for="show-untouched-only" class="filter-option">
+        <input type="checkbox" id="show-untouched-only"> 未着手のみ表示
+      </label>
+    </div>
+    <div class="detail-container" id="detail-container"></div>
+  </div>
+
+  <script type="module" src="app.js" defer></script>
+</body>
+
+</html>
