@@ -14,7 +14,7 @@ body {
   overflow: hidden;
 }
 .header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
   color: white;
   padding: 30px 20px;
   text-align: center;
@@ -72,7 +72,7 @@ body {
 .middle-category-link:active { background: #e9ecef; }
 .category-name { font-size: 15px; }
 .problem-count {
-  background: #667eea;
+  background: #4CAF50;
   color: white;
   padding: 4px 12px;
   border-radius: 12px;
@@ -141,7 +141,7 @@ body {
   transform: translateY(-3px);
 }
 .main-problem {
-  border-left: 4px solid #667eea;
+  border-left: 4px solid #4CAF50;
   padding-left: 16px;
   margin-bottom: 20px;
 }
@@ -158,7 +158,7 @@ body {
   margin-bottom: 15px;
 }
 .similar-toggle:hover .similar-title {
-  color: #667eea;
+  color: #4CAF50;
 }
 .similar-title { font-size: 14px; color: #666; margin-bottom: 15px; font-weight: bold; }
 .average-similarity {
@@ -180,11 +180,11 @@ body {
   border: 1px solid #e0e0e0;
 }
 .similar-item:hover {
-  border-color: #667eea;
+  border-color: #4CAF50;
 }
 .similarity-badge {
   display: inline-block;
-  background: #667eea;
+  background: #4CAF50;
   color: white;
   padding: 2px 8px;
   border-radius: 10px;
@@ -285,14 +285,14 @@ body {
 
 /* 復習が必要な問題のハイライト */
 .problem-card.needs-review {
-  border: 2px solid #ff9800; /* オレンジ色の枠線 */
-  box-shadow: 0 0 12px rgba(255, 152, 0, 0.6); /* オレンジ色のグロー効果 */
+  border: 2px solid #FFC107; /* オレンジ色の枠線 */
+  box-shadow: 0 0 12px rgba(255, 193, 7, 0.6); /* オレンジ色のグロー効果 */
 }
 
 /* トップページで復習項目があるカテゴリをハイライト */
 .middle-category-link.has-review-items .category-name::before {
   content: '●';
-  color: #ff9800; /* オレンジ色 */
+  color: #FFC107; /* 黄色 */
   margin-right: 8px;
   font-size: 12px;
 }
@@ -303,8 +303,8 @@ body {
   padding: 2px 8px;
   border-radius: 10px;
   font-weight: bold;
-  background-color: #ffe8cc; /* 薄いオレンジ */
-  color: #ff6f00;
+  background-color: #FFF3E0; /* 薄い黄色 */
+  color: #FF8F00;
   line-height: 1.5; /* 絵文字と高さを合わせる */
 }
 
@@ -338,7 +338,7 @@ body {
 }
 .progress-bar-inner {
   height: 100%;
-  background: linear-gradient(90deg, #667eea, #764ba2);
+  background: linear-gradient(90deg, #4CAF50, #2E7D32);
   border-radius: 9px;
   transition: width 0.5s ease-in-out;
 }
