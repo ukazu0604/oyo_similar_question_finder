@@ -3,6 +3,7 @@ import sys
 import time
 import pytest
 import requests
+import os
 from requests.exceptions import ConnectionError
 
 PORT = 8000
@@ -31,6 +32,9 @@ def main():
     server_process = None
     server_already_running = False
 
+    # スクリプト自身のディレクトリを取得
+    script_dir = os.path.dirname(__file__)
+
     # 最初にサーバーが起動しているかチェック
     try:
         requests.get(BASE_URL, timeout=1)
@@ -47,9 +51,10 @@ def main():
             # sys.executable を使うことで、現在実行中のPythonインタプリタを指定できる
             print("Webサーバーを起動します...")
             server_process = subprocess.Popen(
-                [sys.executable, "start_server.py"],
+                [sys.executable, os.path.join(script_dir, "start_server.py")],
                 stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE
+                stderr=subprocess.PIPE,
+                cwd=script_dir # Change current working directory for the subprocess
             )
 
             # 2. サーバーが起動するのを待つ
@@ -58,7 +63,12 @@ def main():
 
         # 3. pytestを実行
         print("pytestを実行します...")
-        exit_code = pytest.main(["-v", "test_main_page.py", "test_ui_interactions.py", "test_mobile_view.py"])
+        test_files = [
+            os.path.join(script_dir, "test_main_page.py"),
+            os.path.join(script_dir, "test_ui_interactions.py"),
+            os.path.join(script_dir, "test_mobile_view.py")
+        ]
+        exit_code = pytest.main(["-v"] + test_files)
 
         # 4. スクリプト全体の終了コードをpytestの結果に合わせる
         if exit_code != 0:

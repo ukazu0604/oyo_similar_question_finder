@@ -25,32 +25,32 @@ function remove(key) {
 // Specific data accessors
 export const storage = {
     // Reaction counts
-    loadOshiCounts: () => loadJSON('oshiCounts'),
-    saveOshiCounts: (counts) => saveJSON('oshiCounts', counts),
-    loadLikeCounts: () => loadJSON('likeCounts'),
-    saveLikeCounts: (counts) => saveJSON('likeCounts', counts),
-    loadFearCounts: () => loadJSON('fearCounts'),
-    saveFearCounts: (counts) => saveJSON('fearCounts', counts),
+    loadOshiCounts: () => loadJSON('oyo_oshiCounts'),
+    saveOshiCounts: (counts) => saveJSON('oyo_oshiCounts', counts),
+    loadLikeCounts: () => loadJSON('oyo_likeCounts'),
+    saveLikeCounts: (counts) => saveJSON('oyo_likeCounts', counts),
+    loadFearCounts: () => loadJSON('oyo_fearCounts'),
+    saveFearCounts: (counts) => saveJSON('oyo_fearCounts', counts),
 
     // Problem check state
-    loadChecks: () => loadJSON('problemChecks'),
-    saveChecks: (checks) => saveJSON('problemChecks', checks),
+    loadChecks: () => loadJSON('oyo_problemChecks'),
+    saveChecks: (checks) => saveJSON('oyo_problemChecks', checks),
 
     // UI state
-    loadSortOrder: (defaultValue) => load('currentSortOrder', defaultValue),
-    saveSortOrder: (order) => save('currentSortOrder', order),
-    loadShowUntouchedOnly: () => load('showUntouchedOnly') === 'true',
-    saveShowUntouchedOnly: (value) => save('showUntouchedOnly', value),
+    loadSortOrder: (defaultValue) => load('oyo_currentSortOrder', defaultValue),
+    saveSortOrder: (order) => save('oyo_currentSortOrder', order),
+    loadShowUntouchedOnly: () => load('oyo_showUntouchedOnly') === 'true',
+    saveShowUntouchedOnly: (value) => save('oyo_showUntouchedOnly', value),
 
     // Accordion state for major categories
-    isMajorCatCollapsed: (largeCat) => load(`majorCatCollapsed-${largeCat}`) !== 'false',
-    setMajorCatCollapsed: (largeCat, isCollapsed) => save(`majorCatCollapsed-${largeCat}`, isCollapsed),
+    isMajorCatCollapsed: (largeCat) => load(`oyo_majorCatCollapsed-${largeCat}`) !== 'false',
+    setMajorCatCollapsed: (largeCat, isCollapsed) => save(`oyo_majorCatCollapsed-${largeCat}`, isCollapsed),
 
     // Reset
     resetAll: () => {
-        remove('problemChecks');
-        remove('oshiCounts');
-        remove('likeCounts');
-        remove('fearCounts');
+        remove('oyo_problemChecks');
+        remove('oyo_oshiCounts');
+        remove('oyo_likeCounts');
+        remove('oyo_fearCounts');
     }
 };

@@ -293,7 +293,7 @@ class TestUIInteractions:
             ]
         }
         
-        driver.execute_script(f"localStorage.setItem('problemChecks', JSON.stringify({json.dumps(check_data)}));")
+        driver.execute_script(f"localStorage.setItem('oyo_problemChecks', JSON.stringify({json.dumps(check_data)}));")
         
         # リロードして反映させる
         driver.refresh()
@@ -337,6 +337,8 @@ class TestUIInteractions:
         except:
             pass
             
+        wait_for_page_load(driver) # Wait for page to load after reload
+
         # リアクション数がリセットされているか確認
         total_reactions = driver.find_element(By.ID, "total-reactions").text
         assert "❤️ 0" in total_reactions
