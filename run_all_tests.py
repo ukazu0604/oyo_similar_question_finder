@@ -42,26 +42,11 @@ def main():
         print("このサーバーに対してテストを実行します。テスト後にサーバーは停止されません。")
         server_already_running = True
     except ConnectionError:
-        # サーバーが起動していない場合は、この後で起動する
-        pass
+        print("エラー: サーバーが起動していません。テストを実行できません。")
+        sys.exit(1) # サーバーが起動していない場合は終了
 
     try:
-        if not server_already_running:
-            # 1. Webサーバーをバックグラウンドプロセスとして起動
-            # sys.executable を使うことで、現在実行中のPythonインタプリタを指定できる
-            print("Webサーバーを起動します...")
-            server_process = subprocess.Popen(
-                [sys.executable, os.path.join(script_dir, "start_server.py")],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                cwd=script_dir # Change current working directory for the subprocess
-            )
-
-            # 2. サーバーが起動するのを待つ
-            if not wait_for_server():
-                sys.exit("テストを実行できませんでした。") # サーバーが起動しなかった場合は終了
-
-        # 3. pytestを実行
+        # サーバーが起動していることを確認したので、そのままpytestを実行
         print("pytestを実行します...")
         test_files = [
             os.path.join(script_dir, "test_main_page.py"),
@@ -78,10 +63,8 @@ def main():
             print("すべてのテストが成功しました。")
 
     finally:
-        # 5. テストが成功しても失敗しても、必ずサーバーを停止する
-        if server_process:
-            print("\nWebサーバーを停止しています...")
-            server_process.terminate() # プロセスを終了させる
+        # サーバーは自動起動していないため、停止処理は不要
+        pass
 
 if __name__ == "__main__":
     main()
