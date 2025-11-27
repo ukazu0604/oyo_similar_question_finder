@@ -1,5 +1,3 @@
-pandas
-numpy
-scikit-learn
-tqdm
-PyYAML
+version https://git-lfs.github.com/spec/v1
+oid sha256:df32b9246206e8f566f5106bf0ed5feb13c41bc3d7ba1ee4056d054072d02213
+size 38

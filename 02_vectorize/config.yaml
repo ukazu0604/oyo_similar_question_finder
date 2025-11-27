@@ -1,30 +1,3 @@
-# --- 基本設定 ---
-input_file: "../01_scraping/ap_siken_all_items.csv"
-text_column: "問題名"
-metadata_columns: ["問題番号", "中項目", "問題名", "リンク", "出典"]
-output_dir: "output"
-batch_size: 32
-
-# --- ベクトル化を実行するモデルのリスト ---
-models:
-  # --- Sentence-Transformers (日本語で評価の高いモデル) ---
-  # - name: GLuCoSE-base-ja
-  #   type: sentence-transformers
-  #   huggingface_name: "pkshatech/GLuCoSE-base-ja"
-  #
-  - name: multilingual-e5-large
-    type: sentence-transformers
-    huggingface_name: "intfloat/multilingual-e5-large"
-
-  # --- Ollama (インストール済み) ---
-  # - name: nomic-embed-text
-  #   type: ollama
-  #   timeout: 36000 # タイムアウト（秒）
-
-  # - name: embeddinggemma
-  #   type: ollama
-  #   timeout: 36000 # タイムアウト（秒）
-
-  # - name: mxbai-embed-large
-  #   type: ollama
-  #   timeout: 36000 # タイムアウト（秒）
+version https://git-lfs.github.com/spec/v1
+oid sha256:4f655934e4e9e8892b64ff8d927e3ec650231db276357fc5130ab9e90a50d909
+size 946

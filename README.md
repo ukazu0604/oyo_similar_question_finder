@@ -1,3 +1,3 @@
-# 応用情報 類似問題検索プロジェクト (oyo_similar_question_finder)
-
-このプロジェクトは、応用情報技術者試験の過去問データを収集し、テキストのベクトル化技術を用いて類似した問題を見つけ出すことを目的としています。
+version https://git-lfs.github.com/spec/v1
+oid sha256:d22328b8e6c159a6816c6cda0f5499efea859cddfea41c76371013d0809d75a6
+size 297
