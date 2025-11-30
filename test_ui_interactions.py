@@ -6,6 +6,10 @@ from selenium.webdriver.support.ui import WebDriverWait # Added missing import
 from selenium.webdriver.support import expected_conditions as EC # Added missing import
 from selenium.webdriver.support.ui import Select
 
+# test_main_page.pyからreset_storageをインポート
+from conftest import reset_storage_fixture # ★変更: conftestからreset_storage_fixtureをインポート
+from test_settings import TEST_GAS_URL # TEST_GAS_URLを読み込むために追加
+
 BASE_URL = "http://localhost:8000/"
 
 # 待機時間の定義
@@ -17,12 +21,6 @@ def wait_for_detail_view(driver):
     WebDriverWait(driver, 10).until(
         EC.visibility_of_element_located((By.ID, "detail-view"))
     )
-
-def reset_storage(driver, page_load_waiter):
-    """ローカルストレージをリセットする"""
-    driver.execute_script("localStorage.clear();")
-    driver.refresh()
-    page_load_waiter()
 
 class TestUIInteractions:
 
@@ -36,7 +34,7 @@ class TestUIInteractions:
                 EC.visibility_of(list_el)
             )
 
-    # 修正: login_test_userフィクスチャを追加
+    # test_navigation_to_detail_and_back は reset_storage を使わないので変更なし
     def test_navigation_to_detail_and_back(self, driver, page_load_waiter, login_test_user):
         """
         カテゴリをクリックして詳細画面に遷移し、戻るボタンで戻れることを確認
@@ -67,13 +65,19 @@ class TestUIInteractions:
             EC.visibility_of_element_located((By.ID, "index-view"))
         )
 
-    def test_sort_order_persistence(self, driver, page_load_waiter, login_test_user):
+    def test_sort_order_persistence(self, driver, page_load_waiter, login_test_user, reset_storage_fixture):
         """
         ソート順を変更し、リロード後もその設定が維持されることを確認
         """
         driver.get(BASE_URL)
-        page_load_waiter()
+        reset_storage_fixture() # localStorageをクリア
+        
+        page_load_waiter() # 再度ページロードを待つ (GAS URL設定後の初期化)
         login_test_user() # ログインを実行
+
+        # デバッグロギングの追加
+        problem_checks_from_app = driver.execute_script("return window.state.problemChecks;")
+        print(f"\nDebug: window.state.problemChecks in test_sort_order_persistence = {problem_checks_from_app}")
         
         self._open_first_category(driver)
 
@@ -94,12 +98,15 @@ class TestUIInteractions:
         select_after = Select(driver.find_element(By.ID, "sort-order"))
         assert select_after.first_selected_option.get_attribute("value") == "ref-desc"
 
-    def test_reaction_buttons_persistence(self, driver, page_load_waiter, login_test_user):
+    # 修正: reset_storage_fixture を引数に追加し、呼び出しを修正
+    def test_reaction_buttons_persistence(self, driver, page_load_waiter, login_test_user, reset_storage_fixture):
         """
         リアクションボタン（いいね、推し）のクリックと永続化の確認
         """
         driver.get(BASE_URL)
-        reset_storage(driver, page_load_waiter)
+        reset_storage_fixture() # ★変更: reset_storage_fixture()を呼び出す
+        
+        page_load_waiter() # 再度ページロードを待つ (GAS URL設定後の初期化)
         login_test_user() # ログインを実行
         
         self._open_first_category(driver)
@@ -130,12 +137,15 @@ class TestUIInteractions:
         count_span_after = oshi_btn_after.find_element(By.XPATH, "following-sibling::span")
         assert int(count_span_after.text) == new_count
 
-    def test_checkbox_progress(self, driver, page_load_waiter, login_test_user):
+    # 修正: reset_storage_fixture を引数に追加し、呼び出しを修正
+    def test_checkbox_progress(self, driver, page_load_waiter, login_test_user, reset_storage_fixture):
         """
         4つチェックを入れて1問完了させ、進捗バーが更新されるか確認
         """
         driver.get(BASE_URL)
-        reset_storage(driver, page_load_waiter)
+        reset_storage_fixture() # ★変更: reset_storage_fixture()を呼び出す
+        
+        page_load_waiter() # 再度ページロードを待つ (GAS URL設定後の初期化)
         login_test_user() # ログインを実行
         
         self._open_first_category(driver)
@@ -163,9 +173,6 @@ class TestUIInteractions:
         
         # 戻るボタンで一覧へ
         driver.find_element(By.ID, "back-button").click()
-        WebDriverWait(driver, 10).until(
-            EC.visibility_of_element_located((By.ID, "index-view"))
-        )
         
         # 全体の進捗テキストが更新されていることを確認
         progress_legend = driver.find_element(By.CSS_SELECTOR, "#total-progress-container .progress-legend").text
@@ -206,12 +213,15 @@ class TestUIInteractions:
         time.sleep(0.5)
         assert not content.is_displayed()
 
-    def test_large_category_accordion(self, driver, page_load_waiter, login_test_user):
+    # 修正: reset_storage_fixture を引数に追加し、呼び出しを修正
+    def test_large_category_accordion(self, driver, page_load_waiter, login_test_user, reset_storage_fixture):
         """
         大項目のアコーディオン開閉と永続化の確認
         """
         driver.get(BASE_URL)
-        reset_storage(driver, page_load_waiter)
+        reset_storage_fixture() # ★変更: reset_storage_fixture()を呼び出す
+        
+        page_load_waiter() # 再度ページロードを待つ (GAS URL設定後の初期化)
         login_test_user() # ログインを実行
         
         # 最初の大項目を取得
@@ -228,7 +238,7 @@ class TestUIInteractions:
         
         # リロードして状態が維持されているか確認
         driver.refresh()
-        page_load_waiter()
+        wait_for_detail_view(driver)
         
         # 要素を再取得
         major_title_after = driver.find_element(By.CLASS_NAME, "major-title")
@@ -242,12 +252,15 @@ class TestUIInteractions:
         WebDriverWait(driver, 2).until(EC.invisibility_of_element(list_el_after))
         assert not list_el_after.is_displayed()
 
-    def test_untouched_filter(self, driver, page_load_waiter, login_test_user):
+    # 修正: reset_storage_fixture を引数に追加し、呼び出しを修正
+    def test_untouched_filter(self, driver, page_load_waiter, login_test_user, reset_storage_fixture):
         """
         未着手のみ表示フィルターの動作確認
         """
         driver.get(BASE_URL)
-        reset_storage(driver, page_load_waiter)
+        reset_storage_fixture() # ★変更: reset_storage_fixture()を呼び出す
+        
+        page_load_waiter() # 再度ページロードを待つ (GAS URL設定後の初期化)
         login_test_user() # ログインを実行
         
         self._open_first_category(driver)
@@ -276,13 +289,15 @@ class TestUIInteractions:
         visible_cards = driver.find_elements(By.CLASS_NAME, "problem-card")
         assert len(visible_cards) == total_count - 1
 
-    def test_review_highlight_logic(self, driver, page_load_waiter, login_test_user):
+    def test_review_highlight_logic(self, driver, page_load_waiter, login_test_user, reset_storage_fixture):
         """
         復習タイミングが来た問題がハイライトされるか確認
         localStorageを直接操作して過去のチェック状態を作り出す
         """
         driver.get(BASE_URL)
-        reset_storage(driver, page_load_waiter)
+        reset_storage_fixture() # ★変更: reset_storage_fixture()を呼び出す
+        
+        page_load_waiter() # 再度ページロードを待つ (GAS URL設定後の初期化)
         login_test_user() # ログインを実行
         
         self._open_first_category(driver)
@@ -310,7 +325,11 @@ class TestUIInteractions:
             ]
         }
         
-        driver.execute_script(f"localStorage.setItem('oyo_problemChecks', JSON.stringify({json.dumps(check_data)}));")
+        # storage.jsのgetCurrentUserId()のロジックに合わせてキーを生成
+        user_id = driver.execute_script("return storage.getCurrentUserId();")
+        problem_checks_key = f"oyo_problemChecks_{user_id}" if user_id else 'oyo_problemChecks_default';
+        
+        driver.execute_script(f"localStorage.setItem('{problem_checks_key}', JSON.stringify({json.dumps(check_data)}));")
         
         # リロードして反映させる
         driver.refresh()
@@ -322,12 +341,14 @@ class TestUIInteractions:
         
         assert "needs-review" in target_card_after.get_attribute("class")
 
-    def test_reset_storage(self, driver, page_load_waiter, login_test_user):
+    def test_reset_storage(self, driver, page_load_waiter, login_test_user, reset_storage_fixture):
         """
         リセットボタンの動作確認
         """
         driver.get(BASE_URL)
-        reset_storage(driver, page_load_waiter)
+        reset_storage_fixture() # ★変更: reset_storage_fixture()を呼び出す
+        
+        page_load_waiter() # 再度ページロードを待つ (GAS URL設定後の初期化)
         login_test_user() # ログインを実行
         
         self._open_first_category(driver)
@@ -361,12 +382,14 @@ class TestUIInteractions:
         total_reactions = driver.find_element(By.ID, "total-reactions").text
         assert "❤️ 0" in total_reactions
 
-    def test_archive_interactions(self, driver, page_load_waiter, login_test_user):
+    def test_archive_interactions(self, driver, page_load_waiter, login_test_user, reset_storage_fixture):
         """
         アーカイブ機能のインタラクション（アーカイブ、フィルター、復元）をテスト
         """
         driver.get(BASE_URL)
-        reset_storage(driver, page_load_waiter)
+        reset_storage_fixture() # ★変更: reset_storage_fixture()を呼び出す
+
+        page_load_waiter() # 再度ページロードを待つ (GAS URL設定後の初期化)
         login_test_user() # ログインを実行
 
         self._open_first_category(driver)

@@ -36,6 +36,9 @@ function doPost(e) {
             case 'load':
                 result = loadDataWithAuth(params.accessToken);
                 break;
+            case 'clear': // ★追加: clearアクションのハンドラ
+                result = clearUserData(params.accessToken);
+                break;
             default:
                 result = { error: 'Invalid action' };
         }
@@ -327,6 +330,38 @@ function loadDataWithAuth(accessToken) {
         }
     }
     return { data: {}, version: 0 }; // Return empty data and version 0 if no data found for user
+}
+
+// ★追加: ユーザーデータをクリアする関数
+function clearUserData(accessToken) {
+    const user = getUserByAccessToken(accessToken);
+    if (!user) return { error: 'Unauthorized or Access Token Expired' };
+
+    const ss = getSpreadsheet();
+    const dataSheet = ss.getSheetByName('Data');
+    if (!dataSheet) return { success: true, message: 'Data sheet not found, no data to clear.' };
+
+    const data = dataSheet.getDataRange().getValues();
+    const headers = data[0];
+    const userIdColIdx = headers.indexOf('UserId');
+
+    if (userIdColIdx === -1) {
+        return { error: 'Data sheet is not initialized correctly. Missing UserId header.' };
+    }
+
+    let rowsToDelete = [];
+    for (let i = 1; i < data.length; i++) {
+        if (data[i][userIdColIdx] === user.userId) {
+            rowsToDelete.push(i + 1); // 行番号は1から始まるため +1
+        }
+    }
+
+    // 後ろから削除することで行番号のずれを防ぐ
+    for (let i = rowsToDelete.length - 1; i >= 0; i--) {
+        dataSheet.deleteRow(rowsToDelete[i]);
+    }
+
+    return { success: true, message: `Data for user ${user.userId} cleared.` };
 }
 
 // --- Helpers ---

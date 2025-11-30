@@ -1,5 +1,5 @@
 import { initState, state } from './js/state.js';
-import { loadData, login, register, validate, refreshAccessToken } from './js/api.js?v=1';
+import { loadData, login, register, validate, refreshAccessToken, clearUserData } from './js/api.js?v=1';
 import { initializeRouter } from './js/router.js';
 import { renderTotalReactions, renderTotalProgress, renderTotalReviewCount, renderExamCountdown, showNotification } from './js/ui-common.js';
 import { renderIndex, showIndex } from './js/ui-index.js';
@@ -182,7 +182,8 @@ window.addEventListener('DOMContentLoaded', async () => {
         } finally {
             loadingOverlay.classList.remove('visible');
             window.state = state;
-            window.storage = storage; // ★この行を追加
+            window.storage = storage; // ★この行の後に追記
+            window.clearUserData = clearUserData; // ★追加
             window.appInitialized = true;
         }
     }

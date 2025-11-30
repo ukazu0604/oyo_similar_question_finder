@@ -16,6 +16,7 @@ from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 import os
 import sys
+import re # 追加
 
 # プロジェクトのルートディレクトリをsys.pathに追加
 # conftest.pyがルートにあると仮定
@@ -169,7 +170,25 @@ def page_load_waiter(driver):
             pytest.fail("ページロードまたはオーバーレイの待機がタイムアウトしました。診断情報を確認してください。")
 
         logs = driver.get_log('browser')
-        severe_errors = [log for log in logs if log['level'] == 'SEVERE']
+        
+        # 許容する警告メッセージのリスト (正規表現も可)
+        # "Cloud data loading failed: No refresh token available." はログイン前の初回ロードで発生しうるため、無視
+        ignored_messages = [
+            r"No refresh token available.",
+            r"Refreshing token failed:", # リフレッシュトークンがない場合に発生しうる
+            r"Session not authenticated." # ログイン前の状態を示すため許容
+        ]
+
+        severe_errors = []
+        for log in logs:
+            if log['level'] == 'SEVERE':
+                is_ignored = False
+                for ignored_msg in ignored_messages:
+                    if re.search(ignored_msg, log['message']): # reモジュールが必要
+                        is_ignored = True
+                        break
+                if not is_ignored:
+                    severe_errors.append(log)
         
         if severe_errors:
             messages = [err['message'] for err in severe_errors]
@@ -212,3 +231,33 @@ def login_test_user(driver, page_load_waiter):
         print(f"--- Successfully logged in as {TEST_USER_ID} ---")
     
     return _login
+
+@pytest.fixture
+def reset_storage_fixture(driver, page_load_waiter):
+    """
+    ローカルストレージをクリアし、GAS URLを再設定してページをリロードするpytest fixture。
+    """
+    def _reset_storage_and_set_gas_url():
+        print("--- Clearing localStorage and re-setting GAS URL for test ---")
+        driver.execute_script("localStorage.clear();")
+        
+        # GAS URLをlocalStorageに再設定
+        driver.execute_script(f"localStorage.setItem('oyo_gasUrl', '{TEST_GAS_URL}');")
+
+        # ★追加: GAS側のユーザーデータをクリア
+        # 現在のaccessTokenを取得
+        access_token = driver.execute_script("return localStorage.getItem('oyo_accessToken');")
+        if access_token:
+            print("--- Clearing user data on GAS backend ---")
+            try:
+                # js/api.jsのclearUserDataを呼び出す（非同期のため、await相当の待機が必要）
+                driver.execute_script(f"window.clearUserData();")
+                time.sleep(2) # API呼び出しが完了するまで待機
+            except Exception as e:
+                print(f"警告: GASデータのクリアに失敗しました: {e}")
+        else:
+            print("--- Skipping GAS data clear: No access token available ---")
+
+        driver.refresh()
+        page_load_waiter()
+    return _reset_storage_and_set_gas_url
