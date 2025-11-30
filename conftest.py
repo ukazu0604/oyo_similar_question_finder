@@ -17,6 +17,12 @@ from webdriver_manager.chrome import ChromeDriverManager
 import os
 import sys
 
+# プロジェクトのルートディレクトリをsys.pathに追加
+# conftest.pyがルートにあると仮定
+project_root = os.path.dirname(os.path.abspath(__file__))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
 # 追加: SeleniumのWebDriverWaitとExpectedConditions
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -26,9 +32,9 @@ from selenium.common.exceptions import TimeoutException
 
 # --- テスト設定ファイルの読み込み ---
 try:
-    from .test_settings.local import TEST_GAS_URL, TEST_USER_ID, TEST_PASSWORD
+    from test_settings.local import TEST_GAS_URL, TEST_USER_ID, TEST_PASSWORD # ここから . を削除
 except ImportError:
-    print(f"エラー: '.test_settings.local' ファイルが見つからないか、必要な変数が定義されていません。", file=sys.stderr)
+    print(f"エラー: 'test_settings.local' ファイルが見つからないか、必要な変数が定義されていません。", file=sys.stderr)
     print(f"'py create_test_config.py' を実行してファイルを作成し、テスト用のGAS URL、ユーザーID、パスワードを設定してください。", file=sys.stderr)
     sys.exit(1)
 
