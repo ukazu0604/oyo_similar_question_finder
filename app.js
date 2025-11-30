@@ -141,6 +141,18 @@ window.addEventListener('DOMContentLoaded', async () => {
     // --- Main Execution ---
     async function main() {
         await prepareStaticUI();
+
+        const gasConfig = storage.loadGasConfig();
+        if (!gasConfig || !gasConfig.url) {
+            loadingOverlay.classList.remove('visible'); // loadingOverlayを非表示に
+            syncModal.style.display = 'block'; // syncModalを表示
+            gasUrlInput.value = ''; // gasUrlInputを空に
+            syncStatus.textContent = 'GAS URLが設定されていません。同期設定を行ってください。'; // 警告メッセージ
+            syncStatus.style.color = 'red';
+            showNotification('GAS URLが設定されていません。', 5000, 'error');
+            return; // main()関数の残りの処理をスキップ
+        }
+
         loadingOverlay.classList.add('visible');
 
         try {
@@ -311,6 +323,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 
         syncStatus.textContent = '設定を保存しました。';
         syncStatus.style.color = 'green';
+        location.reload(); // 設定保存後にアプリケーションを再読み込み
     });
 
     document.getElementById('manual-sync-upload').addEventListener('click', async () => {
