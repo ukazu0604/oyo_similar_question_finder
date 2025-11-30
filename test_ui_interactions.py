@@ -36,12 +36,14 @@ class TestUIInteractions:
                 EC.visibility_of(list_el)
             )
 
-    def test_navigation_to_detail_and_back(self, driver, page_load_waiter):
+    # 修正: login_test_userフィクスチャを追加
+    def test_navigation_to_detail_and_back(self, driver, page_load_waiter, login_test_user):
         """
         カテゴリをクリックして詳細画面に遷移し、戻るボタンで戻れることを確認
         """
         driver.get(BASE_URL)
         page_load_waiter()
+        login_test_user() # ログインを実行
         
         self._open_first_category(driver)
 
@@ -65,12 +67,13 @@ class TestUIInteractions:
             EC.visibility_of_element_located((By.ID, "index-view"))
         )
 
-    def test_sort_order_persistence(self, driver, page_load_waiter):
+    def test_sort_order_persistence(self, driver, page_load_waiter, login_test_user):
         """
         ソート順を変更し、リロード後もその設定が維持されることを確認
         """
         driver.get(BASE_URL)
         page_load_waiter()
+        login_test_user() # ログインを実行
         
         self._open_first_category(driver)
 
@@ -91,12 +94,13 @@ class TestUIInteractions:
         select_after = Select(driver.find_element(By.ID, "sort-order"))
         assert select_after.first_selected_option.get_attribute("value") == "ref-desc"
 
-    def test_reaction_buttons_persistence(self, driver, page_load_waiter):
+    def test_reaction_buttons_persistence(self, driver, page_load_waiter, login_test_user):
         """
         リアクションボタン（いいね、推し）のクリックと永続化の確認
         """
         driver.get(BASE_URL)
         reset_storage(driver, page_load_waiter)
+        login_test_user() # ログインを実行
         
         self._open_first_category(driver)
 
@@ -126,12 +130,13 @@ class TestUIInteractions:
         count_span_after = oshi_btn_after.find_element(By.XPATH, "following-sibling::span")
         assert int(count_span_after.text) == new_count
 
-    def test_checkbox_progress(self, driver, page_load_waiter):
+    def test_checkbox_progress(self, driver, page_load_waiter, login_test_user):
         """
         4つチェックを入れて1問完了させ、進捗バーが更新されるか確認
         """
         driver.get(BASE_URL)
         reset_storage(driver, page_load_waiter)
+        login_test_user() # ログインを実行
         
         self._open_first_category(driver)
 
@@ -166,12 +171,13 @@ class TestUIInteractions:
         progress_legend = driver.find_element(By.CSS_SELECTOR, "#total-progress-container .progress-legend").text
         assert "完了: 1.0問" in progress_legend
 
-    def test_accordion_toggle(self, driver, page_load_waiter):
+    def test_accordion_toggle(self, driver, page_load_waiter, login_test_user):
         """
         類似問題のアコーディオン開閉確認
         """
         driver.get(BASE_URL)
         page_load_waiter()
+        login_test_user() # ログインを実行
         
         self._open_first_category(driver)
 
@@ -200,12 +206,13 @@ class TestUIInteractions:
         time.sleep(0.5)
         assert not content.is_displayed()
 
-    def test_large_category_accordion(self, driver, page_load_waiter):
+    def test_large_category_accordion(self, driver, page_load_waiter, login_test_user):
         """
         大項目のアコーディオン開閉と永続化の確認
         """
         driver.get(BASE_URL)
         reset_storage(driver, page_load_waiter)
+        login_test_user() # ログインを実行
         
         # 最初の大項目を取得
         major_title = driver.find_element(By.CLASS_NAME, "major-title")
@@ -235,12 +242,13 @@ class TestUIInteractions:
         WebDriverWait(driver, 2).until(EC.invisibility_of_element(list_el_after))
         assert not list_el_after.is_displayed()
 
-    def test_untouched_filter(self, driver, page_load_waiter):
+    def test_untouched_filter(self, driver, page_load_waiter, login_test_user):
         """
         未着手のみ表示フィルターの動作確認
         """
         driver.get(BASE_URL)
         reset_storage(driver, page_load_waiter)
+        login_test_user() # ログインを実行
         
         self._open_first_category(driver)
 
@@ -268,13 +276,14 @@ class TestUIInteractions:
         visible_cards = driver.find_elements(By.CLASS_NAME, "problem-card")
         assert len(visible_cards) == total_count - 1
 
-    def test_review_highlight_logic(self, driver, page_load_waiter):
+    def test_review_highlight_logic(self, driver, page_load_waiter, login_test_user):
         """
         復習タイミングが来た問題がハイライトされるか確認
         localStorageを直接操作して過去のチェック状態を作り出す
         """
         driver.get(BASE_URL)
         reset_storage(driver, page_load_waiter)
+        login_test_user() # ログインを実行
         
         self._open_first_category(driver)
         
@@ -313,12 +322,13 @@ class TestUIInteractions:
         
         assert "needs-review" in target_card_after.get_attribute("class")
 
-    def test_reset_storage(self, driver, page_load_waiter):
+    def test_reset_storage(self, driver, page_load_waiter, login_test_user):
         """
         リセットボタンの動作確認
         """
         driver.get(BASE_URL)
         reset_storage(driver, page_load_waiter)
+        login_test_user() # ログインを実行
         
         self._open_first_category(driver)
 
@@ -351,12 +361,13 @@ class TestUIInteractions:
         total_reactions = driver.find_element(By.ID, "total-reactions").text
         assert "❤️ 0" in total_reactions
 
-    def test_archive_interactions(self, driver, page_load_waiter):
+    def test_archive_interactions(self, driver, page_load_waiter, login_test_user):
         """
         アーカイブ機能のインタラクション（アーカイブ、フィルター、復元）をテスト
         """
         driver.get(BASE_URL)
         reset_storage(driver, page_load_waiter)
+        login_test_user() # ログインを実行
 
         self._open_first_category(driver)
 

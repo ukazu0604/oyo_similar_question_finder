@@ -58,7 +58,31 @@ if not TEST_PASSWORD or TEST_PASSWORD == "testpassword":
 
 BASE_URL = "http://localhost:8000/" # テスト対象のWebアプリのベースURL
 
+
+
+
+
+# 待機時間の定義
+
+
+SHORT_WAIT = 5
+
+
+MEDIUM_WAIT = 10
+
+
+LONG_WAIT = 30 # 必要に応じて調整
+
+
+
+
+
+
+
+
 @pytest.fixture(scope="module")
+
+
 def driver():
     """
     Selenium WebDriverのインスタンスを提供するpytest fixture。
@@ -96,15 +120,28 @@ def driver():
 def page_load_waiter(driver):
     """
     app.jsによってコンテンツが描画されるのを待ち、深刻なコンソールエラーがないかチェックするヘルパー関数。
+    さらに、主要なオーバーレイが非表示になるのを待つ。
     """
     def _wait_for_page_load():
         try:
+            # ページコンテンツが表示されるのを待つ（以前のロジック）
             WebDriverWait(driver, 60).until(
                 EC.presence_of_element_located((By.CSS_SELECTOR, "#category-list > div"))
             )
             WebDriverWait(driver, 60).until(
                 lambda driver: driver.execute_script("return window.appInitialized === true")
             )
+
+            # 全てのオーバーレイが非表示になるのを待つ
+            WebDriverWait(driver, LONG_WAIT).until(
+                EC.invisibility_of_element_located((By.ID, "loading-overlay")),
+                message="ローディングオーバーレイが非表示になりません"
+            )
+            WebDriverWait(driver, MEDIUM_WAIT).until(
+                EC.invisibility_of_element_located((By.ID, "sync-modal")),
+                message="同期設定モーダルが非表示になりません"
+            )
+
         except TimeoutException:
             print("\n--- TimeoutException during page load. Diagnostic Info: ---")
             print(f"Current URL: {driver.current_url}")
@@ -119,6 +156,7 @@ def page_load_waiter(driver):
             try:
                 browser_logs = driver.get_log('browser')
                 if browser_logs:
+                    print("\n--- Browser Logs (at timeout): ---")
                     for log in browser_logs:
                         print(log)
                     print("------------------------------------")
@@ -128,7 +166,7 @@ def page_load_waiter(driver):
                 print(f"Could not get browser logs: {e}")
             
             print("-------------------------------------------------------")
-            pytest.fail("ページロードがタイムアウトしました。診断情報を確認してください。")
+            pytest.fail("ページロードまたはオーバーレイの待機がタイムアウトしました。診断情報を確認してください。")
 
         logs = driver.get_log('browser')
         severe_errors = [log for log in logs if log['level'] == 'SEVERE']
@@ -142,12 +180,22 @@ def page_load_waiter(driver):
 def login_test_user(driver, page_load_waiter):
     """
     テストユーザーとしてアプリケーションにログインするフィクスチャ。
+    既にログイン済みであれば再ログインしない。
     """
     def _login():
         print(f"\n--- Logging in as test user: {TEST_USER_ID} ---")
         
-        # ログインモーダルを開く
-        WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, "auth-button"))).click()
+        # すでにログイン済みか確認
+        try:
+            current_user_display = driver.find_element(By.ID, "current-user-display")
+            if TEST_USER_ID in current_user_display.text:
+                print(f"--- Already logged in as {TEST_USER_ID}. Skipping login. ---")
+                return
+        except:
+            pass # 要素が見つからない場合はログインしていないと判断
+
+        # アプリケーション起動時にlogin-modalが表示されている前提で処理を進める
+        # login_modalが完全に表示されるのを待つ
         WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.ID, "login-modal")))
         
         # ユーザーIDとパスワードを入力

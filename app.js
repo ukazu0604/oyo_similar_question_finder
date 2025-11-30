@@ -182,6 +182,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         } finally {
             loadingOverlay.classList.remove('visible');
             window.state = state;
+            window.storage = storage; // ★この行を追加
             window.appInitialized = true;
         }
     }

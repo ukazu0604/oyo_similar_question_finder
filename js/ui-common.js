@@ -47,6 +47,10 @@ export function renderTotalProgress() {
     const archivedPercentage = totalProblems > 0 ? (archivedCount / totalProblems) * 100 : 0;
     const totalProgressPercentage = completedPercentage + archivedPercentage;
 
+    // stateに計算結果を保存 (テストコードから参照するため)
+    state.calculatedCompletedCount = partialCompletedCount;
+    state.calculatedArchivedCount = archivedCount;
+
     const container = document.getElementById('total-progress-container');
     if (container) {
         container.innerHTML = `

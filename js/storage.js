@@ -61,29 +61,88 @@ export const storage = {
         localStorage.setItem('oyo_dataVersion', version.toString()); // Direct localStorage access to prevent event loop
     },
 
-    // Reaction counts
-    loadOshiCounts: () => loadJSON('oyo_oshiCounts'),
-    saveOshiCounts: (counts) => saveJSON('oyo_oshiCounts', counts),
-    loadLikeCounts: () => loadJSON('oyo_likeCounts'),
-    saveLikeCounts: (counts) => saveJSON('oyo_likeCounts', counts),
-    loadFearCounts: () => loadJSON('oyo_fearCounts'),
-    saveFearCounts: (counts) => saveJSON('oyo_fearCounts', counts),
+    // Helper to get current userId
+    getCurrentUserId: () => load('oyo_userId', ''), // From saveGasConfig
 
-    // Favorites (New)
-    loadFavorites: () => loadJSON('oyo_favorites', []),
-    saveFavorites: (favorites) => saveJSON('oyo_favorites', favorites),
+    // Reaction counts (ユーザーID紐付け)
+    loadOshiCounts: () => {
+        const userId = storage.getCurrentUserId();
+        const key = userId ? `oyo_oshiCounts_${userId}` : 'oyo_oshiCounts_default';
+        return loadJSON(key);
+    },
+    saveOshiCounts: (counts) => {
+        const userId = storage.getCurrentUserId();
+        const key = userId ? `oyo_oshiCounts_${userId}` : 'oyo_oshiCounts_default';
+        saveJSON(key, counts);
+    },
+    loadLikeCounts: () => {
+        const userId = storage.getCurrentUserId();
+        const key = userId ? `oyo_likeCounts_${userId}` : 'oyo_likeCounts_default';
+        return loadJSON(key);
+    },
+    saveLikeCounts: (counts) => {
+        const userId = storage.getCurrentUserId();
+        const key = userId ? `oyo_likeCounts_${userId}` : 'oyo_likeCounts_default';
+        saveJSON(key, counts);
+    },
+    loadFearCounts: () => {
+        const userId = storage.getCurrentUserId();
+        const key = userId ? `oyo_fearCounts_${userId}` : 'oyo_fearCounts_default';
+        return loadJSON(key);
+    },
+    saveFearCounts: (counts) => {
+        const userId = storage.getCurrentUserId();
+        const key = userId ? `oyo_fearCounts_${userId}` : 'oyo_fearCounts_default';
+        saveJSON(key, counts);
+    },
 
-    // Problem check state
-    loadChecks: () => loadJSON('oyo_problemChecks'),
-    saveChecks: (checks) => saveJSON('oyo_problemChecks', checks),
+    // Favorites (ユーザーID紐付け)
+    loadFavorites: () => {
+        const userId = storage.getCurrentUserId();
+        const key = userId ? `oyo_favorites_${userId}` : 'oyo_favorites_default';
+        return loadJSON(key, []);
+    },
+    saveFavorites: (favorites) => {
+        const userId = storage.getCurrentUserId();
+        const key = userId ? `oyo_favorites_${userId}` : 'oyo_favorites_default';
+        saveJSON(key, favorites);
+    },
 
-    // Archived problems
-    loadArchivedProblemIds: () => loadJSON('oyo_archivedProblemIds', []),
-    saveArchivedProblemIds: (ids) => saveJSON('oyo_archivedProblemIds', ids),
+    // Problem check state (ユーザーID紐付け)
+    loadChecks: () => {
+        const userId = storage.getCurrentUserId();
+        const key = userId ? `oyo_problemChecks_${userId}` : 'oyo_problemChecks_default';
+        return loadJSON(key);
+    },
+    saveChecks: (checks) => {
+        const userId = storage.getCurrentUserId();
+        const key = userId ? `oyo_problemChecks_${userId}` : 'oyo_problemChecks_default';
+        saveJSON(key, checks);
+    },
 
-    // UI state
-    loadSortOrder: (defaultValue) => load('oyo_currentSortOrder', defaultValue),
-    saveSortOrder: (order) => save('oyo_currentSortOrder', order),
+    // Archived problems (ユーザーID紐付け)
+    loadArchivedProblemIds: () => {
+        const userId = storage.getCurrentUserId();
+        const key = userId ? `oyo_archivedProblemIds_${userId}` : 'oyo_archivedProblemIds_default';
+        return loadJSON(key, []);
+    },
+    saveArchivedProblemIds: (ids) => {
+        const userId = storage.getCurrentUserId();
+        const key = userId ? `oyo_archivedProblemIds_${userId}` : 'oyo_archivedProblemIds_default';
+        saveJSON(key, ids);
+    },
+
+    // UI state (ユーザーID紐付け)
+    loadSortOrder: (defaultValue) => {
+        const userId = storage.getCurrentUserId();
+        const key = userId ? `oyo_currentSortOrder_${userId}` : 'oyo_currentSortOrder_default';
+        return load(key, defaultValue);
+    },
+    saveSortOrder: (order) => {
+        const userId = storage.getCurrentUserId();
+        const key = userId ? `oyo_currentSortOrder_${userId}` : 'oyo_currentSortOrder_default';
+        save(key, order);
+    },
     loadShowUntouchedOnly: () => load('oyo_showUntouchedOnly') === 'true',
     saveShowUntouchedOnly: (value) => save('oyo_showUntouchedOnly', value),
     loadShowArchivedOnly: () => load('oyo_showArchivedOnly') === 'true',
@@ -95,7 +154,7 @@ export const storage = {
     isMajorCatCollapsed: (largeCat) => load(`oyo_majorCatCollapsed-${largeCat}`) !== 'false',
     setMajorCatCollapsed: (largeCat, isCollapsed) => save(`oyo_majorCatCollapsed-${largeCat}`, isCollapsed),
 
-    // Exam Date (New)
+    // Exam Date (ユーザーID紐付け)
     loadExamDate: () => {
         const userId = storage.getCurrentUserId();
         const key = userId ? `oyo_examDate_${userId}` : 'oyo_examDate_default'; // User-specific key or default
@@ -107,21 +166,26 @@ export const storage = {
         save(key, date);
     },
 
-    // Helper to get current userId
-    getCurrentUserId: () => load('oyo_userId', ''), // From saveGasConfig
-
     // Last Sync Time
     loadLastSyncTime: () => load('oyo_lastSyncTime'),
     saveLastSyncTime: (timestamp) => localStorage.setItem('oyo_lastSyncTime', timestamp), // Direct save to avoid triggering sync
 
-    // Reset
+    // Reset (ユーザーID紐付け)
     resetAll: () => {
-        remove('oyo_problemChecks');
-        remove('oyo_oshiCounts');
-        remove('oyo_likeCounts');
-        remove('oyo_fearCounts');
-        remove('oyo_favorites');
-        remove('oyo_archivedProblemIds');
+        const userId = storage.getCurrentUserId();
+        const check_key = userId ? `oyo_problemChecks_${userId}` : 'oyo_problemChecks_default';
+        const oshi_key = userId ? `oyo_oshiCounts_${userId}` : 'oyo_oshiCounts_default';
+        const like_key = userId ? `oyo_likeCounts_${userId}` : 'oyo_likeCounts_default';
+        const fear_key = userId ? `oyo_fearCounts_${userId}` : 'oyo_fearCounts_default';
+        const fav_key = userId ? `oyo_favorites_${userId}` : 'oyo_favorites_default';
+        const archived_key = userId ? `oyo_archivedProblemIds_${userId}` : 'oyo_archivedProblemIds_default';
+
+        remove(check_key);
+        remove(oshi_key);
+        remove(like_key);
+        remove(fear_key);
+        remove(fav_key);
+        remove(archived_key);
         remove('oyo_dataVersion'); // Also reset version
         // Keep auth and config
     },
@@ -162,7 +226,7 @@ export const storage = {
         try {
             // 1. Fetch from GAS
             const response = await loadUserData(); // Now returns {data, version}
-            const data = response.data || {};
+            const data = response.version !== undefined ? response.data : response; // Handle old and new API response
             const version = response.version || 0;
 
             // 2. Update local storage
@@ -177,7 +241,7 @@ export const storage = {
             storage.dataVersion = version; // Update local version after successful load
             storage.saveLastSyncTime(new Date().toISOString()); // Save sync timestamp
 
-            return data; // Return only data part for backward compatibility with existing callers
+            return data;
         } finally {
             isSuppressingEvents = false; // Stop suppressing events
             dispatchStorageChangeEvent('bulk_update'); // Dispatch one event after bulk update
