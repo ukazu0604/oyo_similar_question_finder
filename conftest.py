@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 ==============================================
 ヘッドレスモード設定（Seleniumテスト）
@@ -13,24 +14,40 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
-import os # 追加: osモジュールをインポート
-import sys # 追加: sysモジュールをインポート
+import os
+import sys
+
+# 追加: SeleniumのWebDriverWaitとExpectedConditions
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
+from selenium.common.exceptions import TimeoutException
+
 
 # --- テスト設定ファイルの読み込み ---
 try:
-    from .test_settings.local import TEST_GAS_URL # .test_settings.local から TEST_GAS_URL をインポート
+    from .test_settings.local import TEST_GAS_URL, TEST_USER_ID, TEST_PASSWORD
 except ImportError:
-    # .test_settings.local が見つからない、または TEST_GAS_URL が定義されていない場合
-    # run_all_tests.py で既にチェックしているはずだが、念のためここでもエラーにする
-    print(f"エラー: '.test_settings.local' ファイルが見つからないか、TEST_GAS_URLが定義されていません。", file=sys.stderr)
-    print(f"'py create_test_config.py' を実行してファイルを作成し、テスト用のGAS URLを設定してください。", file=sys.stderr)
-    sys.exit(1) # テスト実行を中断
+    print(f"エラー: '.test_settings.local' ファイルが見つからないか、必要な変数が定義されていません。", file=sys.stderr)
+    print(f"'py create_test_config.py' を実行してファイルを作成し、テスト用のGAS URL、ユーザーID、パスワードを設定してください。", file=sys.stderr)
+    sys.exit(1)
 
-# TEST_GAS_URL が空文字列の場合もエラー
+# TEST_GAS_URL のバリデーション
 if not TEST_GAS_URL or TEST_GAS_URL == "https://script.google.com/macros/s/YOUR_TEST_GAS_URL_HERE/exec":
     print(f"エラー: '.test_settings.local' の TEST_GAS_URL が設定されていません。", file=sys.stderr)
     print(f"ファイルを開き、適切なテスト用のGAS URLを設定してください。", file=sys.stderr)
-    sys.exit(1) # テスト実行を中断
+    sys.exit(1)
+
+# TEST_USER_ID と TEST_PASSWORD のバリデーション
+if not TEST_USER_ID or TEST_USER_ID == "testuser":
+    print(f"エラー: '.test_settings.local' の TEST_USER_ID が設定されていません。", file=sys.stderr)
+    print(f"ファイルを開き、適切なテスト用のユーザーIDを設定してください。", file=sys.stderr)
+    sys.exit(1)
+
+if not TEST_PASSWORD or TEST_PASSWORD == "testpassword":
+    print(f"エラー: '.test_settings.local' の TEST_PASSWORD が設定されていません。", file=sys.stderr)
+    print(f"ファイルを開き、適切なテスト用のパスワードを設定してください。", file=sys.stderr)
+    sys.exit(1)
 
 
 @pytest.fixture(scope="module")
@@ -44,37 +61,24 @@ def driver():
     # ヘッドレスモード設定
     if RUN_HEADLESS:
         print("\n--- Running in headless mode setting (Selenium test) ---")
-        chrome_options.add_argument("--headless=new")  # 新しいヘッドレスモード
-        chrome_options.add_argument("--disable-gpu")  # GPU無効化（Windows推奨）
+        chrome_options.add_argument("--headless=new")
+        chrome_options.add_argument("--disable-gpu")
     
     chrome_options.add_argument("--window-size=1920,1080")
-    chrome_options.add_argument("--log-level=0") # Seleniumの冗長なログを抑制
-    # コンソールログを取得するための設定
+    chrome_options.add_argument("--log-level=0")
     chrome_options.set_capability('goog:loggingPrefs', {'browser': 'ALL'})
 
     service = ChromeService(ChromeDriverManager().install())
     web_driver = webdriver.Chrome(service=service, options=chrome_options)
     
-    # --- ここから追加するロジック ---
-    # ブラウザ起動後、localStorageにGAS URLを設定
     print(f"--- Setting GAS URL in localStorage for tests: {TEST_GAS_URL} ---")
     web_driver.execute_script(f"localStorage.setItem('oyo_gasUrl', '{TEST_GAS_URL}');")
-    # --- ここまで追加するロジック ---
 
-    yield web_driver # テスト関数にWebDriverインスタンスを渡す
+    yield web_driver
     
-    # --- クリーンアップロジック ---
     print("--- Cleaning up localStorage after tests ---")
     web_driver.execute_script("localStorage.removeItem('oyo_gasUrl');")
-    # --- クリーンアップロジックここまで ---
-
-    web_driver.quit() # テストモジュール終了後にブラウザを閉じる
-
-
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.by import By
-from selenium.common.exceptions import TimeoutException # Added this import
+    web_driver.quit()
 
 
 @pytest.fixture
@@ -104,7 +108,6 @@ def page_load_waiter(driver):
             try:
                 browser_logs = driver.get_log('browser')
                 if browser_logs:
-                    print("\n--- Browser Logs (at timeout): ---")
                     for log in browser_logs:
                         print(log)
                     print("------------------------------------")
@@ -118,11 +121,35 @@ def page_load_waiter(driver):
 
         logs = driver.get_log('browser')
         severe_errors = [log for log in logs if log['level'] == 'SEVERE']
-        # ページロード後にコンソールエラーがないかチェック
-        logs = driver.get_log('browser')
-        severe_errors = [log for log in logs if log['level'] == 'SEVERE']
         
         if severe_errors:
             messages = [err['message'] for err in severe_errors]
             pytest.fail(f"ページロード中に深刻なコンソールエラーが検出されました:\n{messages}")
     return _wait_for_page_load
+
+@pytest.fixture
+def login_test_user(driver, page_load_waiter):
+    """
+    テストユーザーとしてアプリケーションにログインするフィクスチャ。
+    """
+    def _login():
+        print(f"\n--- Logging in as test user: {TEST_USER_ID} ---")
+        
+        # ログインモーダルを開く
+        WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, "auth-button"))).click()
+        WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.ID, "login-modal")))
+        
+        # ユーザーIDとパスワードを入力
+        driver.find_element(By.ID, "login-user-id").send_keys(TEST_USER_ID)
+        driver.find_element(By.ID, "login-password").send_keys(TEST_PASSWORD)
+        
+        # ログインボタンをクリック
+        driver.find_element(By.ID, "login-button").click()
+        
+        # ログイン成功を待機 (例: ログインモーダルが閉じる、またはユーザー名が表示される)
+        WebDriverWait(driver, 20).until(EC.invisibility_of_element_located((By.ID, "login-modal")))
+        WebDriverWait(driver, 10).until(EC.text_to_be_present_in_element((By.ID, "current-user-display"), TEST_USER_ID))
+        
+        print(f"--- Successfully logged in as {TEST_USER_ID} ---")
+    
+    return _login

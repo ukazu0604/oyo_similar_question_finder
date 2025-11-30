@@ -7,6 +7,12 @@ DEFAULT_CONTENT = """\
 # テスト用のGAS URLをここに設定してください。
 # 例: TEST_GAS_URL = "https://script.google.com/macros/s/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/exec"
 TEST_GAS_URL = "https://script.google.com/macros/s/YOUR_TEST_GAS_URL_HERE/exec"
+
+# テスト用ユーザーIDとパスワードを設定してください。
+# 例: TEST_USER_ID = "testuser"
+# 例: TEST_PASSWORD = "testpassword"
+TEST_USER_ID = "testuser"
+TEST_PASSWORD = "testpassword"
 """
 
 def create_config_file():
