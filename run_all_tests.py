@@ -43,6 +43,10 @@ def main():
     Webサーバーの起動、pytestの実行、サーバーの停止を順番に行う。
     サーバーが既に起動している場合は、それを利用してテストを実行する。
     """
+    # 標準出力・エラー出力のエンコーディングをUTF-8に設定し直す
+    sys.stdout.reconfigure(encoding='utf-8')
+    sys.stderr.reconfigure(encoding='utf-8')
+
     # ★ここから追加するロジック★
     if not os.path.exists(CONFIG_FILE_NAME):
         print(f"警告: テスト設定ファイル '{CONFIG_FILE_NAME}' が見つかりません。")
