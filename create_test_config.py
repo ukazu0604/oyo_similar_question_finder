@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import os
 
 CONFIG_FILE_NAME = ".test_settings.local"
