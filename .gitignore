@@ -1,3 +1,4 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:be67e039582cee7ce899d39a39e3bec12f27c34b67ee12ab1055fae7614fd795
-size 38
+output/
+__pycache__/
+.agent/
+.gemini/

@@ -1,3 +1,7 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:012a8863248a90aa11e75c6663b580e419537ca424a3a533e5c0c1223db2d958
-size 68
+pandas
+numpy
+tqdm
+sentence-transformers
+sentencepiece
+ollama
+PyYAML

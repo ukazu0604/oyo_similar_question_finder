@@ -1,3 +1,10 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:b78c72f181a20cc29641e96fc365e63b5485725d4408792d4d2afc865257b433
-size 166
+[
+  {
+    "id": "similar_results_e5.json",
+    "name": "multilingual-e5-large"
+  },
+  {
+    "id": "similar_results_ruri.json",
+    "name": "cl-nagoya/ruri-base"
+  }
+]

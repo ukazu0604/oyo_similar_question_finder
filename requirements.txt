@@ -1,3 +1,4 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:c6c87e05b0f81efaf933748e37ef279052d5b23fca29d68aa998fdb75ae66996
-size 43
+pytest
+selenium
+webdriver-manager
+requests
