@@ -20,6 +20,9 @@ from requests.exceptions import ConnectionError
 PORT = 8000
 BASE_URL = f"http://localhost:{PORT}/"
 
+# .test_settings.local が存在するかを確認し、存在しなければ作成を促す
+CONFIG_FILE_NAME = ".test_settings.local"
+
 def wait_for_server(timeout=15):
     """サーバーが起動して応答するまで待機する。"""
     print(f"サーバー ({BASE_URL}) の起動を待っています...")
@@ -40,6 +43,14 @@ def main():
     Webサーバーの起動、pytestの実行、サーバーの停止を順番に行う。
     サーバーが既に起動している場合は、それを利用してテストを実行する。
     """
+    # ★ここから追加するロジック★
+    if not os.path.exists(CONFIG_FILE_NAME):
+        print(f"警告: テスト設定ファイル '{CONFIG_FILE_NAME}' が見つかりません。")
+        print(f"テストを開始する前に、まず 'py create_test_config.py' を実行してファイルを作成し、")
+        print(f"'{CONFIG_FILE_NAME}' を編集してテスト用のGAS URLを設定してください。")
+        sys.exit(1) # テスト実行を中断
+    # ★ここまで追加するロジック★
+
     server_process = None
     server_already_running = False
 

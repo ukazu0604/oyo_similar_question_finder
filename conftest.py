@@ -13,6 +13,25 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
+import os # 追加: osモジュールをインポート
+import sys # 追加: sysモジュールをインポート
+
+# --- テスト設定ファイルの読み込み ---
+try:
+    from .test_settings.local import TEST_GAS_URL # .test_settings.local から TEST_GAS_URL をインポート
+except ImportError:
+    # .test_settings.local が見つからない、または TEST_GAS_URL が定義されていない場合
+    # run_all_tests.py で既にチェックしているはずだが、念のためここでもエラーにする
+    print(f"エラー: '.test_settings.local' ファイルが見つからないか、TEST_GAS_URLが定義されていません。", file=sys.stderr)
+    print(f"'py create_test_config.py' を実行してファイルを作成し、テスト用のGAS URLを設定してください。", file=sys.stderr)
+    sys.exit(1) # テスト実行を中断
+
+# TEST_GAS_URL が空文字列の場合もエラー
+if not TEST_GAS_URL or TEST_GAS_URL == "https://script.google.com/macros/s/YOUR_TEST_GAS_URL_HERE/exec":
+    print(f"エラー: '.test_settings.local' の TEST_GAS_URL が設定されていません。", file=sys.stderr)
+    print(f"ファイルを開き、適切なテスト用のGAS URLを設定してください。", file=sys.stderr)
+    sys.exit(1) # テスト実行を中断
+
 
 @pytest.fixture(scope="module")
 def driver():
@@ -36,8 +55,19 @@ def driver():
     service = ChromeService(ChromeDriverManager().install())
     web_driver = webdriver.Chrome(service=service, options=chrome_options)
     
+    # --- ここから追加するロジック ---
+    # ブラウザ起動後、localStorageにGAS URLを設定
+    print(f"--- Setting GAS URL in localStorage for tests: {TEST_GAS_URL} ---")
+    web_driver.execute_script(f"localStorage.setItem('oyo_gasUrl', '{TEST_GAS_URL}');")
+    # --- ここまで追加するロジック ---
+
     yield web_driver # テスト関数にWebDriverインスタンスを渡す
     
+    # --- クリーンアップロジック ---
+    print("--- Cleaning up localStorage after tests ---")
+    web_driver.execute_script("localStorage.removeItem('oyo_gasUrl');")
+    # --- クリーンアップロジックここまで ---
+
     web_driver.quit() # テストモジュール終了後にブラウザを閉じる
 
 
