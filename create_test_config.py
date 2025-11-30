@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 
-CONFIG_FILE_NAME = ".test_settings.local"
+CONFIG_FILE_NAME = "test_settings.py"
 DEFAULT_CONTENT = """\
 # このファイルは.gitignoreで無視されます。
 # テスト用のGAS URLをここに設定してください。

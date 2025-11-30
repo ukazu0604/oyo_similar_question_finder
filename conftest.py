@@ -32,9 +32,9 @@ from selenium.common.exceptions import TimeoutException
 
 # --- テスト設定ファイルの読み込み ---
 try:
-    from test_settings.local import TEST_GAS_URL, TEST_USER_ID, TEST_PASSWORD # ここから . を削除
+    from test_settings import TEST_GAS_URL, TEST_USER_ID, TEST_PASSWORD
 except ImportError:
-    print(f"エラー: 'test_settings.local' ファイルが見つからないか、必要な変数が定義されていません。", file=sys.stderr)
+    print(f"エラー: 'test_settings.py' ファイルが見つからないか、必要な変数が定義されていません。", file=sys.stderr)
     print(f"'py create_test_config.py' を実行してファイルを作成し、テスト用のGAS URL、ユーザーID、パスワードを設定してください。", file=sys.stderr)
     sys.exit(1)
 
