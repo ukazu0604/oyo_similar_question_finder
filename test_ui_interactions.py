@@ -8,7 +8,10 @@ from selenium.webdriver.support.ui import Select
 
 BASE_URL = "http://localhost:8000/"
 
-
+# 待機時間の定義
+SHORT_WAIT = 5
+MEDIUM_WAIT = 10
+LONG_WAIT = 30 # 必要に応じて調整
 
 def wait_for_detail_view(driver):
     WebDriverWait(driver, 10).until(
