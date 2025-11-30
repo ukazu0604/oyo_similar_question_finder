@@ -96,8 +96,19 @@ export const storage = {
     setMajorCatCollapsed: (largeCat, isCollapsed) => save(`oyo_majorCatCollapsed-${largeCat}`, isCollapsed),
 
     // Exam Date (New)
-    loadExamDate: () => load('oyo_examDate'),
-    saveExamDate: (date) => save('oyo_examDate', date),
+    loadExamDate: () => {
+        const userId = storage.getCurrentUserId();
+        const key = userId ? `oyo_examDate_${userId}` : 'oyo_examDate_default'; // User-specific key or default
+        return load(key);
+    },
+    saveExamDate: (date) => {
+        const userId = storage.getCurrentUserId();
+        const key = userId ? `oyo_examDate_${userId}` : 'oyo_examDate_default'; // User-specific key or default
+        save(key, date);
+    },
+
+    // Helper to get current userId
+    getCurrentUserId: () => load('oyo_userId', ''), // From saveGasConfig
 
     // Last Sync Time
     loadLastSyncTime: () => load('oyo_lastSyncTime'),
@@ -161,7 +172,7 @@ export const storage = {
             if (data.fear) storage.saveFearCounts(data.fear);
             if (data.favorites) storage.saveFavorites(data.favorites);
             if (data.archived) storage.saveArchivedProblemIds(data.archived);
-            if (data.examDate) storage.saveExamDate(data.examDate);
+            if (data.examDate !== undefined && data.examDate !== null) storage.saveExamDate(data.examDate);
 
             storage.dataVersion = version; // Update local version after successful load
             storage.saveLastSyncTime(new Date().toISOString()); // Save sync timestamp
