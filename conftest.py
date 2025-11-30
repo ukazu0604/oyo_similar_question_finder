@@ -56,6 +56,8 @@ if not TEST_PASSWORD or TEST_PASSWORD == "testpassword":
     sys.exit(1)
 
 
+BASE_URL = "http://localhost:8000/" # テスト対象のWebアプリのベースURL
+
 @pytest.fixture(scope="module")
 def driver():
     """
@@ -77,6 +79,9 @@ def driver():
     service = ChromeService(ChromeDriverManager().install())
     web_driver = webdriver.Chrome(service=service, options=chrome_options)
     
+    # ブラウザをテスト対象のURLにナビゲート
+    web_driver.get(BASE_URL)
+
     print(f"--- Setting GAS URL in localStorage for tests: {TEST_GAS_URL} ---")
     web_driver.execute_script(f"localStorage.setItem('oyo_gasUrl', '{TEST_GAS_URL}');")
 
