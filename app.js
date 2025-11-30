@@ -311,7 +311,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    document.getElementById('save-sync-settings').addEventListener('click', () => {
+    document.getElementById('save-sync-settings').addEventListener('click', async () => {
         const url = gasUrlInput.value.trim();
         const examDate = examDateInput.value;
         const currentConfig = storage.loadGasConfig();
@@ -323,6 +323,20 @@ window.addEventListener('DOMContentLoaded', async () => {
 
         syncStatus.textContent = '設定を保存しました。';
         syncStatus.style.color = 'green';
+
+        // ★試験日変更後、すぐにクラウドに同期する
+        if (storage.accessToken) { // ログインしている場合のみ同期
+            syncStatus.textContent = '設定を保存しました。クラウドに同期中...';
+            try {
+                await storage.syncWithCloud();
+                syncStatus.textContent = '設定を保存し、クラウドに同期しました！リロードします...';
+                syncStatus.style.color = 'green';
+            } catch (e) {
+                syncStatus.textContent = '設定は保存しましたが、クラウド同期に失敗しました: ' + e.message;
+                syncStatus.style.color = 'red';
+            }
+        }
+        
         location.reload(); // 設定保存後にアプリケーションを再読み込み
     });
 
