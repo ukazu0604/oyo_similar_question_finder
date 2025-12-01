@@ -70,14 +70,10 @@ class TestUIInteractions:
         ソート順を変更し、リロード後もその設定が維持されることを確認
         """
         driver.get(BASE_URL)
-        reset_storage_fixture() # localStorageをクリア
+        reset_storage_fixture() # localStorageとバックエンドデータをクリア
         
-        page_load_waiter() # 再度ページロードを待つ (GAS URL設定後の初期化)
+        page_load_waiter() # 再度ページロードを待つ
         login_test_user() # ログインを実行
-
-        # デバッグロギングの追加
-        problem_checks_from_app = driver.execute_script("return window.state.problemChecks;")
-        print(f"\nDebug: window.state.problemChecks in test_sort_order_persistence = {problem_checks_from_app}")
         
         self._open_first_category(driver)
 

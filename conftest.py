@@ -104,6 +104,10 @@ def driver():
     service = ChromeService(ChromeDriverManager().install())
     web_driver = webdriver.Chrome(service=service, options=chrome_options)
     
+    # ★追加: confirmとalertを自動承認
+    web_driver.execute_script("window.confirm = function() { return true; };")
+    web_driver.execute_script("window.alert = function() { return true; };")
+
     # ブラウザをテスト対象のURLにナビゲート
     web_driver.get(BASE_URL)
 
@@ -235,29 +239,50 @@ def login_test_user(driver, page_load_waiter):
 @pytest.fixture
 def reset_storage_fixture(driver, page_load_waiter):
     """
-    ローカルストレージをクリアし、GAS URLを再設定してページをリロードするpytest fixture。
+    バックエンドのデータとローカルストレージをクリアし、
+    テストがクリーンな状態で開始されるようにするpytest fixture。
     """
     def _reset_storage_and_set_gas_url():
-        print("--- Clearing localStorage and re-setting GAS URL for test ---")
+        print("\n--- [RESET FIXTURE] Starting full storage reset ---")
+
+        # 1. アプリを初期化し、ヘルパー関数(window.clearUserData)を定義させる
+        print("--- [RESET FIXTURE] Step 1: Initializing app to define helpers ---")
+        driver.get(BASE_URL)
         driver.execute_script("localStorage.clear();")
-        
-        # GAS URLをlocalStorageに再設定
         driver.execute_script(f"localStorage.setItem('oyo_gasUrl', '{TEST_GAS_URL}');")
-
-        # ★追加: GAS側のユーザーデータをクリア
-        # 現在のaccessTokenを取得
-        access_token = driver.execute_script("return localStorage.getItem('oyo_accessToken');")
-        if access_token:
-            print("--- Clearing user data on GAS backend ---")
-            try:
-                # js/api.jsのclearUserDataを呼び出す（非同期のため、await相当の待機が必要）
-                driver.execute_script(f"window.clearUserData();")
-                time.sleep(2) # API呼び出しが完了するまで待機
-            except Exception as e:
-                print(f"警告: GASデータのクリアに失敗しました: {e}")
-        else:
-            print("--- Skipping GAS data clear: No access token available ---")
-
         driver.refresh()
         page_load_waiter()
+
+        # 2. バックエンドをクリアするために一時的にログイン
+        print("--- [RESET FIXTURE] Step 2: Temporarily logging in to clear backend ---")
+        try:
+            WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.ID, "login-modal")))
+            driver.find_element(By.ID, "login-user-id").send_keys(TEST_USER_ID)
+            driver.find_element(By.ID, "login-password").send_keys(TEST_PASSWORD)
+            driver.find_element(By.ID, "login-button").click()
+            WebDriverWait(driver, 20).until(EC.invisibility_of_element_located((By.ID, "login-modal")))
+        except TimeoutException:
+            print("--- [RESET FIXTURE] Login modal not found, attempting to proceed with cleanup. ---")
+
+        # 3. バックエンドのデータをクリア
+        access_token = driver.execute_script("return localStorage.getItem('oyo_accessToken');")
+        if access_token:
+            print("--- [RESET FIXTURE] Step 3: Clearing backend data ---")
+            clear_script = """
+                const callback = arguments[arguments.length - 1];
+                window.clearUserData().then(() => callback()).catch(err => callback(err.toString()));
+            """
+            driver.execute_async_script(clear_script)
+        else:
+            print("--- [RESET FIXTURE] WARNING: Could not get access token for cleanup. ---")
+
+        # 4. テスト本体のために、すべてを完全にクリアしてリフレッシュ
+        print("--- [RESET FIXTURE] Step 4: Final cleanup for the actual test ---")
+        driver.execute_script("localStorage.clear();")
+        driver.execute_script(f"localStorage.setItem('oyo_gasUrl', '{TEST_GAS_URL}');")
+        driver.refresh()
+        page_load_waiter()
+        
+        print("--- [RESET FIXTURE] Reset complete. Test will now run. ---")
+
     return _reset_storage_and_set_gas_url

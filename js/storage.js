@@ -31,6 +31,12 @@ function save(key, value) {
     dispatchStorageChangeEvent(key); // Dispatch event after saving
 }
 
+// ★追加: イベントを発火させずに保存（UI状態用）
+function saveSilent(key, value) {
+    localStorage.setItem(key, value);
+    // イベントを発火しない
+}
+
 function remove(key) {
     localStorage.removeItem(key);
 }
@@ -144,15 +150,15 @@ export const storage = {
         save(key, order);
     },
     loadShowUntouchedOnly: () => load('oyo_showUntouchedOnly') === 'true',
-    saveShowUntouchedOnly: (value) => save('oyo_showUntouchedOnly', value),
+    saveShowUntouchedOnly: (value) => saveSilent('oyo_showUntouchedOnly', value), // UI状態なので同期不要
     loadShowArchivedOnly: () => load('oyo_showArchivedOnly') === 'true',
-    saveShowArchivedOnly: (value) => save('oyo_showArchivedOnly', value),
+    saveShowArchivedOnly: (value) => saveSilent('oyo_showArchivedOnly', value), // UI状態なので同期不要
     loadShowFavoritesOnly: () => load('oyo_showFavoritesOnly') === 'true',
-    saveShowFavoritesOnly: (value) => save('oyo_showFavoritesOnly', value),
+    saveShowFavoritesOnly: (value) => saveSilent('oyo_showFavoritesOnly', value), // UI状態なので同期不要
 
     // Accordion state for major categories
     isMajorCatCollapsed: (largeCat) => load(`oyo_majorCatCollapsed-${largeCat}`) !== 'false',
-    setMajorCatCollapsed: (largeCat, isCollapsed) => save(`oyo_majorCatCollapsed-${largeCat}`, isCollapsed),
+    setMajorCatCollapsed: (largeCat, isCollapsed) => saveSilent(`oyo_majorCatCollapsed-${largeCat}`, isCollapsed), // UI状態なので同期不要
 
     // Exam Date (ユーザーID紐付け)
     loadExamDate: () => {

@@ -128,6 +128,10 @@ export async function loadUserData() {
     return await postToGas('load', {}, true);
 }
 
+export async function clearUserData() {
+    return await postToGas('clear', {}, true);
+}
+
 export async function loadData(modelId = 'similar_results.json') {
     try {
         const res = await fetch(`03_html_output/${modelId}`);

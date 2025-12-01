@@ -25,12 +25,20 @@ export function showDetail(middleCat, isPopState = false) {
         return shouldHighlightProblem(problemId, state.problemChecks);
     });
 
-    if (hasReviewItems) {
+    const storedSortOrder = storage.loadSortOrder();
+
+    if (storedSortOrder) {
+        // 保存されたソート順があればそれを優先
+        state.currentSortOrder = storedSortOrder;
+        console.log(`[並び順適用] 保存された設定「${state.currentSortOrder}」を適用します。`);
+    } else if (hasReviewItems) {
+        // 保存された設定がなく、復習項目があれば「復習優先」を提案
         state.currentSortOrder = 'review-first';
         console.log(`[自動並び順変更] カテゴリ「${middleCat}」に復習項目があるため、並び順を「復習優先」に変更しました。`);
     } else {
-        state.currentSortOrder = storage.loadSortOrder('default');
-        console.log(`[並び順適用] カテゴリ「${middleCat}」に復習項目がないため、保存された設定「${state.currentSortOrder}」を適用します。`);
+        // 保存された設定も復習項目もなければデフォルト
+        state.currentSortOrder = 'default';
+        console.log(`[並び順適用] デフォルトの並び順を適用します。`);
     }
 
 
