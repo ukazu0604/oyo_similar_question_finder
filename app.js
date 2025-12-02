@@ -103,7 +103,7 @@ window.addEventListener('DOMContentLoaded', async () => {
             console.log("Session not authenticated.");
         }
 
-        loadingStatusText.textContent = '状態を初期化中...';
+        loadingStatusText.textContent = '学習データを準備中...';
         initState();
         console.log("User session initialization finished.");
 

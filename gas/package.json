@@ -1,0 +1,8 @@
+{
+    "name": "oyo-gas",
+    "version": "1.0.0",
+    "description": "GAS backend for OYO Similar Question Finder",
+    "devDependencies": {
+        "@types/google-apps-script": "^1.0.0"
+    }
+}

@@ -61,3 +61,58 @@
 
     テストフレームワークは、`.test_settings.local`から`TEST_GAS_URL`を自動的に読み込み、テスト時にブラウザの`localStorage`に設定して使用します。
 
+## 開発ワークフロー
+
+### GASコードの管理とデプロイ
+
+GASコードは`gas/`ディレクトリで管理されており、claspを使用してデプロイできます。
+
+#### 初回セットアップ
+
+1. **claspのインストール**:
+   ```bash
+   npm install -g @google/clasp
+   ```
+
+2. **Googleアカウントでログイン**:
+   ```bash
+   clasp login
+   ```
+
+3. **Apps Script APIを有効化**:
+   - https://script.google.com/home/usersettings にアクセス
+   - 「Google Apps Script API」をオンにする
+   - 数分待つ（APIの有効化が反映されるまで）
+
+4. **スクリプトIDの設定**:
+   - GASエディタで「プロジェクトの設定」→「スクリプトID」をコピー
+   - `gas/.clasp.json`を開き、`<YOUR_SCRIPT_ID>`を実際のスクリプトIDに置き換え
+
+#### デプロイ
+
+```bash
+py deploy_gas.py
+```
+
+または、コマンドラインから：
+
+```bash
+cd gas
+clasp push
+```
+
+#### GASから最新コードを取得
+
+```bash
+py pull_gas.py
+```
+
+詳細は`GAS_SETUP.md`を参照してください。
+
+### テストの実行
+
+```bash
+py run_all_tests.py
+```
+
+すべてのテストを実行します。

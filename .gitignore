@@ -2,3 +2,9 @@ output/
 __pycache__/
 .agent/
 .gemini/
+
+# Clasp configuration (contains script ID)
+gas/.clasp.json
+
+# Node modules
+gas/node_modules/

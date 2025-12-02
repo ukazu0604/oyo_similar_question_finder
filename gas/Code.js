@@ -53,18 +53,30 @@ function doPost(e) {
 }
 
 // --- Configuration ---
-const SPREADSHEET_ID = getId(); // ★ここにスプレッドシートIDを入力してください★
-
+// スプレッドシートIDを自動取得（スクリプトがスプレッドシートにバインドされている場合）
 function getSpreadsheetId() {
-    const id = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
-    return id || SPREADSHEET_ID;
+    // まずスクリプトプロパティから取得を試みる
+    const savedId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+    if (savedId) {
+        return savedId;
+    }
+
+    // スクリプトがスプレッドシートにバインドされている場合、自動取得
+    try {
+        const ss = SpreadsheetApp.getActiveSpreadsheet();
+        if (ss) {
+            return ss.getId();
+        }
+    } catch (e) {
+        // スタンドアロンスクリプトの場合はエラーになる
+    }
+
+    // どちらも取得できない場合はエラー
+    throw new Error('Spreadsheet ID not configured. Please set SPREADSHEET_ID in Script Properties or bind this script to a spreadsheet.');
 }
 
 function getSpreadsheet() {
     const id = getSpreadsheetId();
-    if (id === 'YOUR_SPREADSHEET_ID') {
-        throw new Error('Spreadsheet ID not configured');
-    }
     return SpreadsheetApp.openById(id);
 }
 

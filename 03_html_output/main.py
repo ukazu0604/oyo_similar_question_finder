@@ -74,8 +74,8 @@ def compute_similarities(df, vector_column):
             sims = []
             for j, score in enumerate(sim_matrix[i]):
                 if i != j:
-                    # 類似度80%以上をすべて抽出
-                    if float(score) >= 0.8:
+                    # 類似度90%以上をすべて抽出
+                    if float(score) >= 0.9:
                         sims.append({
                             "similarity": float(score),
                             "data": select_output_data(items[j]['data'])

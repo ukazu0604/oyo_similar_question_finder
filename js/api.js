@@ -59,11 +59,11 @@ async function postToGas(action, payload = {}, authRequired = false, isRetry = f
         return await makeRequest();
     } catch (error) {
         const isAuthError = authRequired && (
-            error.message.includes('Unauthorized') || 
-            error.message.includes('Expired') || 
+            error.message.includes('Unauthorized') ||
+            error.message.includes('Expired') ||
             error.message.includes('missing')
         );
-        
+
         if (isAuthError && !isRetry) {
             try {
                 const refreshResult = await refreshAccessToken();
@@ -76,7 +76,7 @@ async function postToGas(action, payload = {}, authRequired = false, isRetry = f
                 throw refreshError;
             }
         }
-        
+
         throw error;
     }
 }
@@ -112,7 +112,7 @@ export async function refreshAccessToken() {
         // console.error('[REFRESH] Failed to refresh access token:', e.message, e);
         storage.accessToken = null;
         storage.refreshToken = null;
-        return null; 
+        return null;
     }
 }
 
@@ -166,8 +166,8 @@ function calculateReferenceCounts(categories) {
         // この中分類内の各問題が持つ「類似問題リスト」をチェック
         problemsInCat.forEach(item => {
             item.similar_problems.forEach(sim => {
-                // 類似度が80%以上のものだけをカウント対象にする
-                if (sim.similarity >= 0.8) {
+                // 類似度が90%以上のものだけをカウント対象にする
+                if (sim.similarity >= 0.9) {
                     const problemId = sim.data.問題番号;
                     countsInCat[problemId] = (countsInCat[problemId] || 0) + 1;
                 }
