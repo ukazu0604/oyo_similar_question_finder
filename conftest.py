@@ -59,31 +59,14 @@ if not TEST_PASSWORD or TEST_PASSWORD == "testpassword":
 
 BASE_URL = "http://localhost:8000/" # テスト対象のWebアプリのベースURL
 
-
-
-
-
 # 待機時間の定義
-
-
 SHORT_WAIT = 5
-
 
 MEDIUM_WAIT = 10
 
-
 LONG_WAIT = 30 # 必要に応じて調整
 
-
-
-
-
-
-
-
 @pytest.fixture(scope="module")
-
-
 def driver():
     """
     Selenium WebDriverのインスタンスを提供するpytest fixture。
@@ -180,7 +163,7 @@ def page_load_waiter(driver):
         ignored_messages = [
             r"No refresh token available.",
             r"Refreshing token failed:", # リフレッシュトークンがない場合に発生しうる
-            r"Session not authenticated." # ログイン前の状態を示すため許容
+            r"Session not authenticated."
         ]
 
         severe_errors = []
@@ -228,8 +211,10 @@ def login_test_user(driver, page_load_waiter):
         # ログインボタンをクリック
         driver.find_element(By.ID, "login-button").click()
         
-        # ログイン成功を待機 (例: ログインモーダルが閉じる、またはユーザー名が表示される)
-        WebDriverWait(driver, 20).until(EC.invisibility_of_element_located((By.ID, "login-modal")))
+        # ログイン成功後、ページがリロードされるので、それを待つ
+        page_load_waiter()
+        
+        # ユーザー名が表示されることを確認
         WebDriverWait(driver, 10).until(EC.text_to_be_present_in_element((By.ID, "current-user-display"), TEST_USER_ID))
         
         print(f"--- Successfully logged in as {TEST_USER_ID} ---")
@@ -245,7 +230,7 @@ def reset_storage_fixture(driver, page_load_waiter):
     def _reset_storage_and_set_gas_url():
         print("\n--- [RESET FIXTURE] Starting full storage reset ---")
 
-        # 1. アプリを初期化し、ヘルパー関数(window.clearUserData)を定義させる
+        # 1. アプリを一度読み込み、ヘルパー関数(window.clearUserData)を定義させる
         print("--- [RESET FIXTURE] Step 1: Initializing app to define helpers ---")
         driver.get(BASE_URL)
         driver.execute_script("localStorage.clear();")
@@ -276,13 +261,13 @@ def reset_storage_fixture(driver, page_load_waiter):
         else:
             print("--- [RESET FIXTURE] WARNING: Could not get access token for cleanup. ---")
 
-        # 4. テスト本体のために、すべてを完全にクリアしてリフレッシュ
+        # 4. テスト本番のために、すべてを綺麗にクリアしてリフレッシュ
         print("--- [RESET FIXTURE] Step 4: Final cleanup for the actual test ---")
         driver.execute_script("localStorage.clear();")
         driver.execute_script(f"localStorage.setItem('oyo_gasUrl', '{TEST_GAS_URL}');")
         driver.refresh()
         page_load_waiter()
-        
+
         print("--- [RESET FIXTURE] Reset complete. Test will now run. ---")
 
     return _reset_storage_and_set_gas_url
