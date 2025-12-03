@@ -538,6 +538,32 @@ body {
   .main-problem {
     padding-left: 16px;
   }
+
+  .progress-bar-container {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .progress-bar {
+    width: 100%;
+    /* Make the bar take full width on its own line */
+    order: 1;
+    /* Ensure it appears first */
+  }
+
+  .progress-text {
+    order: 2;
+    /* Appears after the bar */
+    margin-top: 8px;
+  }
+
+  .progress-percentage {
+    order: 3;
+    /* Appears last */
+    margin-top: 8px;
+    margin-left: auto;
+    /* Push to the right */
+  }
 }
 
 /* ここから追加・変更したスタイル */
