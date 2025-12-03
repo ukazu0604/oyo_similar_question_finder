@@ -8,3 +8,7 @@ gas/.clasp.json
 
 # Node modules
 gas/node_modules/
+
+# Generated files
+index.html
+03_html_output/problem_data.js
