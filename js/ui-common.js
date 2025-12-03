@@ -31,6 +31,7 @@ export function renderTotalProgress() {
     if (!state.data.categories) return;
 
     let totalProblems = 0;
+    let totalAchievementPoints = 0; // New variable for achievement points
     const archivedIds = new Set(state.archivedProblemIds);
 
     // Initialize tier counts
@@ -47,24 +48,35 @@ export function renderTotalProgress() {
         ARCHIVED_4_CHECKS: 0,
     };
 
-    // Calculate counts for each tier
+    // Calculate counts for each tier and achievement points
     for (const middleCat in state.data.categories) {
         const problems = state.data.categories[middleCat];
         totalProblems += problems.length;
 
         for (const item of problems) {
             const problemId = `${item.main_problem.出典}-${item.main_problem.問題番号}`;
+            const isArchived = state.archivedProblemIds.includes(problemId); // Check if problem is archived
+            const checks = state.problemChecks[problemId];
+            const checkedCount = checks ? checks.filter(c => c && c.checked).length : 0;
+
+            if (isArchived) {
+                totalAchievementPoints += 1.0; // Archived problems are 100% achieved
+            } else {
+                totalAchievementPoints += checkedCount / 4; // Each check contributes 25%
+            }
+
             const tier = getProblemTier(problemId, state.problemChecks, state.archivedProblemIds);
             tierCounts[tier]++;
         }
     }
 
-    // Calculate percentages for each tier
+    // Calculate achievement percentage
+    const totalAchievementPercentage = totalProblems > 0 ? (totalAchievementPoints / totalProblems) * 100 : 0;
+
+    // Calculate percentages for each tier (for the stacked bar)
     const tierPercentages = {};
-    let totalProgressPercentage = 0;
     for (const tier in tierCounts) {
         tierPercentages[tier] = totalProblems > 0 ? (tierCounts[tier] / totalProblems) * 100 : 0;
-        totalProgressPercentage += tierPercentages[tier];
     }
     
     // stateに計算結果を保存 (テストコードから参照するため - 必要に応じて調整)
@@ -116,7 +128,7 @@ export function renderTotalProgress() {
             ${progressBarHtml}
           </div>
           <div class="progress-text">
-             進捗: ${isNaN(totalProgressPercentage) ? '0.0' : totalProgressPercentage.toFixed(1)}% (${totalProblems} 問中)
+             進捗: ${isNaN(totalAchievementPercentage) ? '0.0' : totalAchievementPercentage.toFixed(1)}% (${totalProblems} 問中)
           </div>
           <div class="progress-legend">
             ${legendHtml}
