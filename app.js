@@ -64,7 +64,6 @@ window.addEventListener('DOMContentLoaded', async () => {
     // --- Step 2b: Initialize user session and load user-specific data ---
     async function initializeUserSession() {
         let isAuthenticated = false;
-        loadingStatusText.textContent = 'セッションを確認中...';
 
         const accessToken = storage.accessToken;
 
@@ -93,9 +92,20 @@ window.addEventListener('DOMContentLoaded', async () => {
 
         if (isAuthenticated) {
             console.log("Session authenticated.");
-            loadingStatusText.textContent = 'データをクラウドから読み込み中...';
             try {
                 await storage.loadFromCloud();
+                // Re-initialize state with cloud data
+                initState();
+                // Re-render UI to reflect cloud data
+                const currentHash = location.hash.substring(1);
+                if (currentHash) {
+                    renderProblemList(decodeURIComponent(currentHash));
+                } else {
+                    renderIndex(state.data.categories);
+                }
+                renderTotalReactions();
+                renderTotalReviewCount();
+                renderTotalProgress();
             } catch (e) {
                 console.error('Cloud data loading failed:', e.message);
             }
@@ -103,8 +113,6 @@ window.addEventListener('DOMContentLoaded', async () => {
             console.log("Session not authenticated.");
         }
 
-        loadingStatusText.textContent = '学習データを準備中...';
-        initState();
         console.log("User session initialization finished.");
 
         return { isAuthenticated };
@@ -114,14 +122,6 @@ window.addEventListener('DOMContentLoaded', async () => {
     function renderFinalUI() {
         loadingStatusText.textContent = 'UIを更新中...';
         modelInfo.textContent = `使用モデル: ${state.data.model || 'N/A'}`;
-        const config = storage.loadGasConfig();
-        if (storage.accessToken && config.userId) {
-            const lastSync = storage.loadLastSyncTime();
-            const syncTimeText = lastSync ? formatSyncTime(lastSync) : '';
-            currentUserDisplay.textContent = `User: ${config.userId}${syncTimeText}`;
-        } else {
-            currentUserDisplay.textContent = '';
-        }
 
         renderTotalReactions();
         renderTotalReviewCount();
@@ -136,6 +136,27 @@ window.addEventListener('DOMContentLoaded', async () => {
             renderIndex(state.data.categories);
         }
         console.log("Final UI rendered.");
+    }
+
+    // --- Helper: Enable editing features after login ---
+    function enableEditingFeatures() {
+        // Remove read-only class from all interactive elements
+        document.querySelectorAll('.check-box, .reaction-button, .archive-button, .star-icon').forEach(el => {
+            el.classList.remove('read-only');
+        });
+        console.log("Editing features enabled.");
+    }
+
+    // --- Helper: Update user display ---
+    function updateUserDisplay() {
+        const config = storage.loadGasConfig();
+        if (storage.accessToken && config.userId) {
+            const lastSync = storage.loadLastSyncTime();
+            const syncTimeText = lastSync ? formatSyncTime(lastSync) : '';
+            currentUserDisplay.textContent = `User: ${config.userId}${syncTimeText}`;
+        } else {
+            currentUserDisplay.textContent = '';
+        }
     }
 
     // --- Main Execution ---
@@ -156,21 +177,41 @@ window.addEventListener('DOMContentLoaded', async () => {
         loadingOverlay.classList.add('visible');
 
         try {
-            const [_, sessionResult] = await Promise.all([
-                loadCoreData(),
-                initializeUserSession()
-            ]);
+            // 1. Load core data first
+            await loadCoreData();
 
+            // 2. Initialize state with local data
+            initState();
+
+            // 3. Render UI immediately in read-only mode
+            window.isReadOnlyMode = true;
             renderFinalUI();
+            loadingOverlay.classList.remove('visible');
+
+            // Add read-only class to all interactive elements
+            document.querySelectorAll('.check-box, .reaction-button, .archive-button, .star-icon').forEach(el => {
+                el.classList.add('read-only');
+            });
+
+            // Show notification that user can browse
+            showNotification('問題を閲覧できます。ログイン処理中...', 3000, 'info');
+
+            // 4. Authenticate in background
+            const sessionResult = await initializeUserSession();
+
+            // 5. Enable editing after authentication
+            window.isReadOnlyMode = false;
+            enableEditingFeatures();
 
             if (sessionResult.isAuthenticated) {
-                showNotification('準備完了です！', 2000, 'success');
+                updateUserDisplay();
+                showNotification('ログイン完了！編集可能になりました。', 2000, 'success');
             } else {
                 document.getElementById('login-modal').style.display = 'block';
                 if (storage.refreshToken) {
-                    showNotification('セッションが切れました。再度ログインしてください。', 5000, 'warning');
+                    showNotification('セッションが切れました。ログインすると編集できます。', 5000, 'warning');
                 } else {
-                    showNotification('ログインまたは新規登録が必要です。', 3000, 'info');
+                    showNotification('ログインすると編集できます。', 3000, 'info');
                 }
             }
 
@@ -180,10 +221,9 @@ window.addEventListener('DOMContentLoaded', async () => {
             console.error("Initialization failed:", error);
             alert('アプリケーションの初期化に失敗しました。ページをリロードしてください。');
         } finally {
-            loadingOverlay.classList.remove('visible');
             window.state = state;
-            window.storage = storage; // ★この行の後に追記
-            window.clearUserData = clearUserData; // ★追加
+            window.storage = storage;
+            window.clearUserData = clearUserData;
             window.appInitialized = true;
         }
     }
@@ -338,7 +378,7 @@ window.addEventListener('DOMContentLoaded', async () => {
                 syncStatus.style.color = 'red';
             }
         }
-        
+
         location.reload(); // 設定保存後にアプリケーションを再読み込み
     });
 

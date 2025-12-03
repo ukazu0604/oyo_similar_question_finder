@@ -326,6 +326,12 @@ export function renderProblemList(middleCat) {
             e.preventDefault();
             e.stopPropagation();
 
+            // Check if in read-only mode
+            if (window.isReadOnlyMode) {
+                showNotification('ログイン処理中です。しばらくお待ちください。', 2000, 'warning');
+                return;
+            }
+
             const problemId = e.target.dataset.problemId;
             const checkIndex = parseInt(e.target.dataset.checkIndex, 10);
 
@@ -368,6 +374,12 @@ export function renderProblemList(middleCat) {
             e.preventDefault();
             e.stopPropagation();
 
+            // Check if in read-only mode
+            if (window.isReadOnlyMode) {
+                showNotification('ログイン処理中です。しばらくお待ちください。', 2000, 'warning');
+                return;
+            }
+
             const problemId = e.target.dataset.problemId;
             const reactionType = e.target.dataset.reactionType;
 
@@ -398,6 +410,12 @@ export function renderProblemList(middleCat) {
             e.preventDefault();
             e.stopPropagation();
 
+            // Check if in read-only mode
+            if (window.isReadOnlyMode) {
+                showNotification('ログイン処理中です。しばらくお待ちください。', 2000, 'warning');
+                return;
+            }
+
             const problemId = e.target.dataset.problemId;
             const index = state.archivedProblemIds.indexOf(problemId);
 
@@ -422,6 +440,12 @@ export function renderProblemList(middleCat) {
         star.addEventListener('click', e => {
             e.preventDefault();
             e.stopPropagation();
+
+            // Check if in read-only mode
+            if (window.isReadOnlyMode) {
+                showNotification('ログイン処理中です。しばらくお待ちください。', 2000, 'warning');
+                return;
+            }
 
             const problemId = e.target.dataset.problemId;
             const index = state.favorites.indexOf(problemId);

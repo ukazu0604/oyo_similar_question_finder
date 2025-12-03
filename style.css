@@ -675,6 +675,19 @@ body {
   /* Amber-400 */
 }
 
+/* Read-only mode styles */
+.read-only {
+  opacity: 0.5;
+  cursor: not-allowed !important;
+  pointer-events: none;
+}
+
+button:disabled,
+input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* 復習が必要な問題のハイライト */
 .problem-card.needs-review {
   border: 2px solid var(--color-secondary);
