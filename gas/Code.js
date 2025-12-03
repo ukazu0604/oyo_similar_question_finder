@@ -268,7 +268,7 @@ function saveDataWithAuth(accessToken, jsonData, clientVersion) {
     if (!dataSheet) {
         dataSheet = ss.insertSheet('Data');
         // Add Version header
-        dataSheet.appendRow(['UserId', 'JSON_Data', 'LastUpdated', 'Version']);
+        dataSheet.appendRow(['UserId', 'JSON_Data', 'LastUpdated', 'Version', 'LastEditedBy']);
     }
 
     const data = dataSheet.getDataRange().getValues();
@@ -277,27 +277,30 @@ function saveDataWithAuth(accessToken, jsonData, clientVersion) {
     const jsonDataColIdx = headers.indexOf('JSON_Data');
     const lastUpdatedColIdx = headers.indexOf('LastUpdated');
     const versionColIdx = headers.indexOf('Version');
+    const lastEditedByColIdx = headers.indexOf('LastEditedBy');
 
-    if ([userIdColIdx, jsonDataColIdx, lastUpdatedColIdx, versionColIdx].some(idx => idx === -1)) {
+    if ([userIdColIdx, jsonDataColIdx, lastUpdatedColIdx, versionColIdx, lastEditedByColIdx].some(idx => idx === -1)) {
         return { error: 'Data sheet is not initialized correctly. Missing required headers for optimistic locking.' };
     }
 
     let found = false;
     let currentRowIndex = -1;
     let storedVersion = 0;
+    let lastEditedBy = '';
 
     for (let i = 1; i < data.length; i++) {
         if (data[i][userIdColIdx] === user.userId) {
             currentRowIndex = i;
             storedVersion = parseInt(data[i][versionColIdx] || 0); // Parse existing version, default to 0
+            lastEditedBy = data[i][lastEditedByColIdx] || '';
             found = true;
             break;
         }
     }
 
-    // Check for optimistic lock conflict
-    if (found && clientVersion !== undefined && clientVersion !== storedVersion) {
-        return { error: 'ConflictError', currentVersion: storedVersion };
+    // Check for optimistic lock conflict - skip if last editor is the same user
+    if (found && clientVersion !== undefined && lastEditedBy !== user.userId && clientVersion !== storedVersion) {
+        return { error: 'ConflictError', currentVersion: storedVersion, lastEditedBy: lastEditedBy };
     }
 
     const newVersion = storedVersion + 1;
@@ -308,9 +311,10 @@ function saveDataWithAuth(accessToken, jsonData, clientVersion) {
         dataSheet.getRange(currentRowIndex + 1, jsonDataColIdx + 1).setValue(JSON.stringify(jsonData));
         dataSheet.getRange(currentRowIndex + 1, lastUpdatedColIdx + 1).setValue(now);
         dataSheet.getRange(currentRowIndex + 1, versionColIdx + 1).setValue(newVersion);
+        dataSheet.getRange(currentRowIndex + 1, lastEditedByColIdx + 1).setValue(user.userId);
     } else {
         // Append new row
-        dataSheet.appendRow([user.userId, JSON.stringify(jsonData), now, newVersion]);
+        dataSheet.appendRow([user.userId, JSON.stringify(jsonData), now, newVersion, user.userId]);
     }
 
     return { success: true, version: newVersion };
