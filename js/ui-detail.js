@@ -238,7 +238,7 @@ export function renderProblemList(middleCat) {
 
         // Similar Problems
         const filteredSimilars = item.similar_problems
-            ? item.similar_problems.filter(sim => sim.similarity >= 0.9)
+            ? item.similar_problems.filter(sim => sim.similarity >= 0.80)
             : [];
 
         if (filteredSimilars.length > 0) {

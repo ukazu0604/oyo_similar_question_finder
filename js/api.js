@@ -166,8 +166,8 @@ function calculateReferenceCounts(categories) {
         // この中分類内の各問題が持つ「類似問題リスト」をチェック
         problemsInCat.forEach(item => {
             item.similar_problems.forEach(sim => {
-                // 類似度が90%以上のものだけをカウント対象にする
-                if (sim.similarity >= 0.9) {
+                // 類似度が80%以上のものだけをカウント対象にする
+                if (sim.similarity >= 0.80) {
                     const problemId = sim.data.問題番号;
                     countsInCat[problemId] = (countsInCat[problemId] || 0) + 1;
                 }
