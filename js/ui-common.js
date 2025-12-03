@@ -128,7 +128,7 @@ export function renderTotalProgress() {
             ${progressBarHtml}
           </div>
           <div class="progress-text">
-             進捗: ${isNaN(totalAchievementPercentage) ? '0.0' : totalAchievementPercentage.toFixed(1)}% (${totalProblems} 問中)
+             進捗: ${isNaN(totalAchievementPercentage) ? '0.0' : totalAchievementPercentage.toFixed(1)}% (${totalAchievementPoints.toFixed(1)} 問相当 / ${totalProblems} 問中)
           </div>
           <div class="progress-legend">
             ${legendHtml}
