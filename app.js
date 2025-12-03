@@ -17,47 +17,68 @@ function formatSyncTime(isoString) {
 
 window.addEventListener('DOMContentLoaded', async () => {
     const modelInfo = document.getElementById('model-info');
-    const modelSelector = document.getElementById('model-selector');
+    // const modelSelector = document.getElementById('model-selector'); // Removed
     const currentUserDisplay = document.getElementById('current-user-display');
     const loadingOverlay = document.getElementById('loading-overlay');
     const loadingStatusText = document.getElementById('loading-status-text');
 
     // --- Step 1: Prepare static UI elements (like model selector) ---
+    // --- Step 1: Prepare static UI elements (Removed model selector) ---
     async function prepareStaticUI() {
-        let models = [];
-        try {
-            const res = await fetch('03_html_output/models.json');
-            models = res.ok ? await res.json() : [{ id: 'similar_results.json', name: 'Default (Fallback)' }];
-        } catch (e) {
-            console.error('Failed to load models.json:', e);
-            models = [{ id: 'similar_results.json', name: 'Default (Fallback)' }];
-        }
-
-        modelSelector.innerHTML = '';
-        models.forEach(model => {
-            const option = document.createElement('option');
-            option.value = model.id;
-            option.textContent = model.name;
-            modelSelector.appendChild(option);
-        });
-
-        const savedModel = localStorage.getItem('selectedModel');
-        if (savedModel && models.some(m => m.id === savedModel)) {
-            modelSelector.value = savedModel;
-        }
-        console.log("Static UI prepared.");
+        // Model selector is removed.
+        console.log("Static UI prepared (Model selector removed).");
     }
 
     // --- Step 2a: Load core application data (the model itself) ---
+    // --- Step 2a: Load core application data (the model itself) ---
     async function loadCoreData() {
-        loadingStatusText.textContent = '問題データを読み込み中...';
+        loadingStatusText.textContent = 'データを準備中...';
         try {
-            const selectedModelId = modelSelector.value;
-            await loadData(selectedModelId);
+            // Use embedded data
+            if (window.PROBLEM_DATA) {
+                state.data = window.PROBLEM_DATA;
+
+                // Filter similar problems to same middle category
+                for (const middleCat in state.data.categories) {
+                    state.data.categories[middleCat].forEach(item => {
+                        item.similar_problems = item.similar_problems.filter(sim => {
+                            return sim.data.中分類 === item.main_problem.中分類;
+                        });
+                    });
+                }
+
+                // Calculate reference counts (function is defined in api.js but imported via loadData... wait, loadData is imported but calculateReferenceCounts is not exported from api.js? 
+                // Actually calculateReferenceCounts is internal to api.js. I need to move it here or export it.
+                // Let's check api.js again. It's not exported. I should copy it here or export it.
+                // Since I'm simplifying, I'll copy the logic here or import it if I modify api.js.
+                // For now, I'll implement the logic here directly as it's simple.
+
+                calculateReferenceCounts(state.data.categories);
+
+            } else {
+                throw new Error('データが埋め込まれていません。');
+            }
         } catch (e) {
             modelInfo.textContent = 'データ読み込みエラー';
             console.error(e);
             throw new Error('Failed to load core data.');
+        }
+    }
+
+    function calculateReferenceCounts(categories) {
+        state.referenceCounts = {};
+        for (const middleCat in categories) {
+            const problemsInCat = categories[middleCat];
+            const countsInCat = {};
+            problemsInCat.forEach(item => {
+                item.similar_problems.forEach(sim => {
+                    if (sim.similarity >= 0.9) {
+                        const problemId = sim.data.問題番号;
+                        countsInCat[problemId] = (countsInCat[problemId] || 0) + 1;
+                    }
+                });
+            });
+            state.referenceCounts[middleCat] = countsInCat;
         }
     }
 
@@ -310,10 +331,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    modelSelector.addEventListener('change', async (e) => {
-        localStorage.setItem('selectedModel', e.target.value);
-        location.reload();
-    });
+    // Removed modelSelector event listener
 
     document.getElementById('back-button').addEventListener('click', e => {
         e.preventDefault();
