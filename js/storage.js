@@ -198,8 +198,23 @@ export const storage = {
 
     // Cloud Sync (GAS)
     saveGasConfig: (url, userId) => {
+        const oldUserId = load('oyo_userId', ''); // Get current userId before saving new one
         save('oyo_gasUrl', url);
         save('oyo_userId', userId);
+
+        // Migrate sort order from default to user-specific if necessary
+        const defaultSortKey = 'oyo_currentSortOrder_default';
+        const userSortKey = `oyo_currentSortOrder_${userId}`;
+        
+        const defaultSortOrder = localStorage.getItem(defaultSortKey);
+        const userSortOrder = localStorage.getItem(userSortKey);
+
+        if (defaultSortOrder && !userSortOrder) {
+            // If a default sort order exists and no user-specific one, migrate it
+            localStorage.setItem(userSortKey, defaultSortOrder);
+            localStorage.removeItem(defaultSortKey);
+            console.log(`Migrated sort order from default to user ${userId}`);
+        }
     },
     loadGasConfig: () => ({
         url: load('oyo_gasUrl', ''),
