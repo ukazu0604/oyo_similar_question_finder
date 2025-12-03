@@ -10,5 +10,4 @@ gas/.clasp.json
 gas/node_modules/
 
 # Generated files
-index.html
 03_html_output/problem_data.js
