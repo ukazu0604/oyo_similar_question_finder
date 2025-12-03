@@ -1,6 +1,19 @@
 import { state } from './state.js';
 import { shouldHighlightProblem } from './utils.js';
 
+// Helper function to determine the tier of a problem
+function getProblemTier(problemId, problemChecks, archivedProblemIds) {
+    const isArchived = archivedProblemIds.includes(problemId);
+    const checks = problemChecks[problemId];
+    const checkedCount = checks ? checks.filter(c => c && c.checked).length : 0;
+
+    if (isArchived) {
+        return `ARCHIVED_${checkedCount}_CHECKS`;
+    } else {
+        return `NOT_ARCHIVED_${checkedCount}_CHECKS`;
+    }
+}
+
 export function renderTotalReactions() {
     const totalOshi = Object.values(state.oshiCounts).reduce((sum, count) => sum + count, 0);
     const totalLike = Object.values(state.likeCounts).reduce((sum, count) => sum + count, 0);
@@ -18,53 +31,95 @@ export function renderTotalProgress() {
     if (!state.data.categories) return;
 
     let totalProblems = 0;
-    let partialCompletedCount = 0; // 0.25刻みの進捗を保持する新しい変数
-    const archivedIds = new Set(state.archivedProblemIds); // 高速なルックアップのためSetを使用
-    const archivedCount = archivedIds.size;
+    const archivedIds = new Set(state.archivedProblemIds);
 
+    // Initialize tier counts
+    const tierCounts = {
+        NOT_ARCHIVED_0_CHECKS: 0,
+        NOT_ARCHIVED_1_CHECK: 0,
+        NOT_ARCHIVED_2_CHECKS: 0,
+        NOT_ARCHIVED_3_CHECKS: 0,
+        NOT_ARCHIVED_4_CHECKS: 0,
+        ARCHIVED_0_CHECKS: 0,
+        ARCHIVED_1_CHECK: 0,
+        ARCHIVED_2_CHECKS: 0,
+        ARCHIVED_3_CHECKS: 0,
+        ARCHIVED_4_CHECKS: 0,
+    };
+
+    // Calculate counts for each tier
     for (const middleCat in state.data.categories) {
         const problems = state.data.categories[middleCat];
         totalProblems += problems.length;
 
         for (const item of problems) {
             const problemId = `${item.main_problem.出典}-${item.main_problem.問題番号}`;
-
-            // アーカイブ済みの問題は進捗に含めないが、アーカイブバーの計算には使う
-            if (archivedIds.has(problemId)) {
-                continue;
-            }
-
-            const checks = state.problemChecks[problemId];
-            if (checks) {
-                const checkedCount = checks.filter(c => c && c.checked).length;
-                partialCompletedCount += checkedCount / 4; // 0.25刻みで加算
-            }
+            const tier = getProblemTier(problemId, state.problemChecks, state.archivedProblemIds);
+            tierCounts[tier]++;
         }
     }
 
-    // 進捗バーの計算は partialCompletedCount を使用
-    const completedPercentage = totalProblems > 0 ? (partialCompletedCount / totalProblems) * 100 : 0;
-    const archivedPercentage = totalProblems > 0 ? (archivedCount / totalProblems) * 100 : 0;
-    const totalProgressPercentage = completedPercentage + archivedPercentage;
-
-    // stateに計算結果を保存 (テストコードから参照するため)
-    state.calculatedCompletedCount = partialCompletedCount;
-    state.calculatedArchivedCount = archivedCount;
+    // Calculate percentages for each tier
+    const tierPercentages = {};
+    let totalProgressPercentage = 0;
+    for (const tier in tierCounts) {
+        tierPercentages[tier] = totalProblems > 0 ? (tierCounts[tier] / totalProblems) * 100 : 0;
+        totalProgressPercentage += tierPercentages[tier];
+    }
+    
+    // stateに計算結果を保存 (テストコードから参照するため - 必要に応じて調整)
+    // ここでは新しいティアごとのカウントを保存する
+    state.progressTierCounts = tierCounts;
+    state.progressTierPercentages = tierPercentages;
+    state.totalProblems = totalProblems;
 
     const container = document.getElementById('total-progress-container');
     if (container) {
+        let progressBarHtml = '';
+        let legendHtml = '';
+        
+        const tierOrder = [
+            'NOT_ARCHIVED_0_CHECKS', 'NOT_ARCHIVED_1_CHECK', 'NOT_ARCHIVED_2_CHECKS',
+            'NOT_ARCHIVED_3_CHECKS', 'NOT_ARCHIVED_4_CHECKS',
+            'ARCHIVED_0_CHECKS', 'ARCHIVED_1_CHECK', 'ARCHIVED_2_CHECKS',
+            'ARCHIVED_3_CHECKS', 'ARCHIVED_4_CHECKS',
+        ];
+
+        const tierLabels = {
+            NOT_ARCHIVED_0_CHECKS: '未着手',
+            NOT_ARCHIVED_1_CHECK: '1回チェック',
+            NOT_ARCHIVED_2_CHECKS: '2回チェック',
+            NOT_ARCHIVED_3_CHECKS: '3回チェック',
+            NOT_ARCHIVED_4_CHECKS: '4回チェック',
+            ARCHIVED_0_CHECKS: 'アーカイブ済(0)',
+            ARCHIVED_1_CHECK: 'アーカイブ済(1)',
+            ARCHIVED_2_CHECKS: 'アーカイブ済(2)',
+            ARCHIVED_3_CHECKS: 'アーカイブ済(3)',
+            ARCHIVED_4_CHECKS: 'アーカイブ済(4)',
+        };
+
+        tierOrder.forEach(tier => {
+            const percentage = tierPercentages[tier].toFixed(2);
+            if (percentage > 0) {
+                progressBarHtml += `<div class="progress-bar-segment progress-bar-${tier.toLowerCase()}" style="width: ${percentage}%;"></div>`;
+                legendHtml += `
+                    <span class="legend-item legend-item-${tier.toLowerCase()}">■</span> ${tierLabels[tier]}: ${tierCounts[tier]}問 (${percentage}%) | `;
+            }
+        });
+        // Remove trailing " | " from legend
+        legendHtml = legendHtml.replace(/ \| $/, '');
+
+
         container.innerHTML = `
         <div class="progress-bar-container stacked">
           <div class="progress-bar">
-            <div class="progress-bar-completed" style="width: ${completedPercentage.toFixed(2)}%;"></div>
-            <div class="progress-bar-archived" style="width: ${archivedPercentage.toFixed(2)}%;"></div>
+            ${progressBarHtml}
           </div>
           <div class="progress-text">
-             進捗: ${totalProgressPercentage.toFixed(1)}% (${(partialCompletedCount + archivedCount).toFixed(1)} / ${totalProblems} 問)
+             進捗: ${totalProgressPercentage.toFixed(1)}% (${totalProblems} 問中)
           </div>
           <div class="progress-legend">
-            <span class="legend-item completed">■</span>完了: ${partialCompletedCount.toFixed(1)}問 (${completedPercentage.toFixed(1)}%) | 
-            <span class="legend-item archived">■</span>アーカイブ: ${archivedCount}問 (${archivedPercentage.toFixed(1)}%)
+            ${legendHtml}
           </div>
         </div>
       `;

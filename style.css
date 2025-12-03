@@ -818,18 +818,54 @@ input:disabled {
   /* 子要素を横に並べる */
 }
 
-.progress-bar-completed {
+.progress-bar-segment {
   height: 100%;
-  background: linear-gradient(90deg, #3b82f6, #2563eb);
-  /* 青系 */
   transition: width 0.5s ease-in-out;
+  flex-shrink: 0;
+}
+
+/* 未アーカイブ */
+.progress-bar-not_archived_0_checks {
+  background-color: #fca5a5; /* Red-300 */
+}
+.progress-bar-not_archived_1_check {
+  background-color: #fb923c; /* Orange-400 */
+}
+.progress-bar-not_archived_2_checks {
+  background-color: #facc15; /* Amber-400 */
+}
+.progress-bar-not_archived_3_checks {
+  background-color: #a3e635; /* Lime-400 */
+}
+.progress-bar-not_archived_4_checks {
+  background-color: #22c55e; /* Green-600 */
+}
+
+/* アーカイブ済み */
+.progress-bar-archived_0_checks {
+  background-color: #d1d5db; /* Gray-300 */
+}
+.progress-bar-archived_1_check {
+  background-color: #9ca3af; /* Gray-400 */
+}
+.progress-bar-archived_2_checks {
+  background-color: #6b7280; /* Gray-500 */
+}
+.progress-bar-archived_3_checks {
+  background-color: #4b5563; /* Gray-700 */
+}
+.progress-bar-archived_4_checks {
+  background-color: #1f2937; /* Gray-800 */
+}
+
+.progress-bar-completed {
+  /* This style is now obsolete, replaced by tier-specific styles */
+  background: none;
 }
 
 .progress-bar-archived {
-  height: 100%;
-  background: linear-gradient(90deg, #22c55e, #16a34a);
-  /* 緑系 */
-  transition: width 0.5s ease-in-out;
+  /* This style is now obsolete, replaced by tier-specific styles */
+  background: none;
 }
 
 .progress-legend {
@@ -837,12 +873,34 @@ input:disabled {
   color: var(--color-gray-600);
   margin-top: 8px;
   text-align: center;
+  flex-wrap: wrap; /* Allow legend items to wrap */
+  justify-content: center; /* Center legend items */
+  display: flex;
+  gap: 8px; /* Space between legend items */
 }
 
 .progress-legend .legend-item {
   font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
+/* レジェンドの色付け */
+.legend-item-not_archived_0_checks { color: #fca5a5; }
+.legend-item-not_archived_1_check { color: #fb923c; }
+.legend-item-not_archived_2_checks { color: #facc15; }
+.legend-item-not_archived_3_checks { color: #a3e635; }
+.legend-item-not_archived_4_checks { color: #22c55e; }
+
+.legend-item-archived_0_checks { color: #d1d5db; }
+.legend-item-archived_1_check { color: #9ca3af; }
+.legend-item-archived_2_checks { color: #6b7280; }
+.legend-item-archived_3_checks { color: #4b5563; }
+.legend-item-archived_4_checks { color: #1f2937; }
+
+
+/* Old legend items (obsolete) */
 .progress-legend .legend-item.completed {
   color: #2563eb;
 }
