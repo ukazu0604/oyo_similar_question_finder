@@ -22,6 +22,30 @@
 
 以上で設定は完了です。設定後は、手動でのアップロード/ダウンロードや、必要に応じた自動同期が行われます。
 
+## 問題データの生成
+
+このアプリケーションは、ベクトル化された問題データ（`gemma_embeddings.json`）を基に、類似問題を検索・表示します。このデータはColab環境で生成されることを想定しています。
+
+### データ生成ワークフロー
+
+1.  **Colabでのデータ生成**:
+    -   Colab環境で問題のベクトル化処理を実行し、`gemma_embeddings.json`を生成します。このファイルには、各問題の埋め込みベクトルが含まれています。
+    -   **重要**: `gemma_embeddings.json`をプロジェクトの`03_html_output/`ディレクトリに配置してください。
+
+2.  **類似度計算と埋め込み**:
+    -   `03_html_output/main.py`スクリプトが`gemma_embeddings.json`を読み込み、類似度計算を行い、アプリケーションが利用する形式のJavaScriptファイル（`problem_data.js`）を生成します。
+    -   このスクリプトは、設定された類似度閾値（デフォルトは0.85）に基づいて類似問題を抽出します。
+    ```bash
+    py 03_html_output/main.py
+    ```
+
+3.  **HTMLへのデータ埋め込み**:
+    -   `03_html_output/generate_html.py`スクリプトが`problem_data.js`のデータと`index_template.html`を結合し、最終的な`index.html`ファイルを生成します。
+    ```bash
+    py 03_html_output/generate_html.py
+    ```
+    -   これにより、`index.html`に問題データが直接埋め込まれ、アプリケーションが起動時に利用できるようになります。
+
 ## テスト環境の設定
 
 このプロジェクトでは、テスト実行時にGoogle Apps Script (GAS) のURLが必要となります。

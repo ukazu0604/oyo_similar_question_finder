@@ -3,37 +3,12 @@ import numpy as np
 import json
 import os
 import argparse
-import yaml
 from sklearn.metrics.pairwise import cosine_similarity
 from collections import defaultdict
 from tqdm import tqdm
 
 def print_log(message):
     print(f"[{pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')}] {message}")
-
-def load_config(config_path):
-    """設定ファイルを読み込む。スクリプトの場所を基準にパスを解決する。"""
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    absolute_config_path = os.path.normpath(os.path.join(script_dir, config_path))
-    print_log(f"設定ファイル '{absolute_config_path}' の読み込みを開始します...")
-    if not os.path.exists(absolute_config_path):
-        print_log(f"エラー: 設定ファイルが見つかりません: {absolute_config_path}")
-        return None
-    with open(absolute_config_path, 'r', encoding='utf-8') as f:
-        config = yaml.safe_load(f)
-    print_log("設定ファイルの読み込みが完了しました。")
-    return config
-
-def extract_vector(value):
-    if pd.isna(value) or value == '' or value == 'None' or value == '[]':
-        return None
-    try:
-        v = json.loads(value)
-        if isinstance(v, list) and len(v) > 0:
-            return np.array(v)
-    except:
-        pass
-    return None
 
 def get_vector_column_name(model_config):
     model_name = model_config.get('name')
@@ -57,9 +32,9 @@ def compute_similarities(df, vector_column):
     grouped = defaultdict(list)
     for idx, row in df.iterrows():
         mid = row['中項目']
-        vector = extract_vector(row[vector_column])
-        if vector is not None:
-            grouped[mid].append({'index': idx, 'vector': vector, 'data': row.to_dict()})
+        vector = row[vector_column]
+        if vector is not None and len(vector) > 0:
+            grouped[mid].append({'index': idx, 'vector': np.array(vector), 'data': row.to_dict()})
 
     # 結果を格納する辞書を準備
     results = {
@@ -96,40 +71,43 @@ def compute_similarities(df, vector_column):
 def main():
     parser = argparse.ArgumentParser(description="類似度JSONを生成します。")
     # デフォルトパスをスクリプトからの相対パスとして定義
-    parser.add_argument('--csv_path', type=str, default='../02_vectorize/output/ap_siken_all_items_vectors.csv', help='ベクトル化済みCSVファイルのパス')
-    parser.add_argument('--config_path', type=str, default='../02_vectorize/config.yaml', help='config.yamlのパス')
+    parser.add_argument('--input_json', type=str, default='gemma_embeddings.json', help='入力JSONファイルのパス')
     parser.add_argument('--output_dir', type=str, default='../03_html_output', help='JSONの出力先ディレクトリ')
-    parser.add_argument('--model', type=str)
     parser.add_argument('--output_filename', type=str, default='problem_data.js', help='出力JSファイル名')
     args = parser.parse_args()
 
     print_log("=== 類似問題JS生成開始 ===")
 
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    csv_path = os.path.normpath(os.path.join(script_dir, args.csv_path))
+    input_json_path = os.path.normpath(os.path.join(script_dir, args.input_json))
     output_dir = os.path.normpath(os.path.join(script_dir, args.output_dir))
     os.makedirs(output_dir, exist_ok=True)
     output_path = os.path.join(output_dir, args.output_filename)
 
-    config = load_config(args.config_path)
-    if config is None: return
-
-    models_config = config.get('models', [])
-    if not models_config:
-        print_log("config.yamlにmodelsがありません。")
-        return
+    # Hardcode the model configuration for embeddinggemma
+    # Since we are standardizing on gemma and not using multiple models
+    models_config = [
+        {
+            "name": "embeddinggemma",
+            "type": "ollama",
+            "timeout": 36000 # Dummy value, not actually used by this script
+        }
+    ]
     
-    df = pd.read_csv(csv_path, encoding='utf-8-sig')
+    with open(input_json_path, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+    df = pd.DataFrame(data)
+
     required = ['大項目', '中項目', '問題番号', '問題名', 'リンク', '出典']
     for col in required:
         if col not in df.columns:
             print_log(f"エラー: {col} 列が存在しません")
             return
 
-    if args.model:
-        model_config = next((m for m in models_config if m['name'] == args.model), None)
-    else:
-        model_config = models_config[0]
+    model_config = next((m for m in models_config if m['name'] == 'embeddinggemma'), None)
+    if not model_config:
+        print_log("config.yamlにembeddinggemmaモデルが見つかりません。")
+        return
 
     model_name = model_config['name']
     vector_column = get_vector_column_name(model_config)
