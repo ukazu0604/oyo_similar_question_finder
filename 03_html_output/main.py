@@ -36,6 +36,10 @@ def extract_vector(value):
     return None
 
 def get_vector_column_name(model_config):
+    model_name = model_config.get('name')
+    if model_name == 'embeddinggemma':
+        return 'embedding'
+        
     model_type = model_config.get('type')
     if model_type == 'sentence-transformers' and 'huggingface_name' in model_config:
         name_to_use = model_config['huggingface_name']
@@ -92,14 +96,14 @@ def compute_similarities(df, vector_column):
 def main():
     parser = argparse.ArgumentParser(description="類似度JSONを生成します。")
     # デフォルトパスをスクリプトからの相対パスとして定義
-    parser.add_argument('--csv_path', type=str, default='../02_vectorize/ap_siken_all_items_vectors.csv', help='ベクトル化済みCSVファイルのパス')
+    parser.add_argument('--csv_path', type=str, default='../02_vectorize/output/ap_siken_all_items_vectors.csv', help='ベクトル化済みCSVファイルのパス')
     parser.add_argument('--config_path', type=str, default='../02_vectorize/config.yaml', help='config.yamlのパス')
     parser.add_argument('--output_dir', type=str, default='../03_html_output', help='JSONの出力先ディレクトリ')
     parser.add_argument('--model', type=str)
-    parser.add_argument('--output_filename', type=str, default='similar_results.json', help='出力JSONファイル名')
+    parser.add_argument('--output_filename', type=str, default='problem_data.js', help='出力JSファイル名')
     args = parser.parse_args()
 
-    print_log("=== 類似問題JSON生成開始 ===")
+    print_log("=== 類似問題JS生成開始 ===")
 
     script_dir = os.path.dirname(os.path.abspath(__file__))
     csv_path = os.path.normpath(os.path.join(script_dir, args.csv_path))
@@ -136,9 +140,11 @@ def main():
     results['model'] = model_name # 結果に使用したモデル名を追加
 
     with open(output_path, 'w', encoding='utf-8') as f:
+        f.write("window.PROBLEM_DATA = ")
         json.dump(results, f, ensure_ascii=False, indent=2)
+        f.write(";")
 
-    print_log(f"JSON出力完了: {output_path}")
+    print_log(f"JS出力完了: {output_path}")
     print_log("=== 完了 ===")
 
 if __name__ == '__main__':

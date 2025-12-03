@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>応用情報技術者試験 類似問題ファインダー</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- favicon.ico の404エラーを防ぐためのダミー指定 -->
+  <link rel="icon" href="data:,">
+</head>
+
+<body>
+  <div class="container" id="index-view">
+    <div class="header">
+      <h1>📚 類似問題ファインダー</h1>
+      <p>応用情報技術者試験</p>
+      <div id="exam-countdown" class="exam-countdown"></div>
+    </div>
+    <div id="total-progress-container"></div>
+    <div class="header-info-container">
+      <div class="model-selection">
+        <label for="model-selector">モデル:</label>
+        <select id="model-selector"></select>
+      </div>
+      <div class="model-info" id="model-info">読み込み中...</div>
+      <div id="total-review-summary"></div>
+      <div class="total-reactions" id="total-reactions"></div>
+      <div class="sync-controls">
+        <span id="current-user-display" style="font-size: 12px; margin-right: 8px;"></span>
+        <button id="auth-button" class="icon-button" title="ログイン/ログアウト">👤</button>
+        <button id="sync-settings-button" class="icon-button" title="同期設定">⚙️</button>
+      </div>
+    </div>
+    <div id="category-list"></div>
+    <div style="text-align: center; padding: 20px;">
+      <button id="reset-storage-button">チェック状態をリセット</button>
+    </div>
+  </div>
+
+  <div id="detail-view">
+    <div class="detail-header">
+      <a href="#" class="back-button" id="back-button">‹ 戻る</a>
+      <h1 id="detail-title"></h1>
+    </div>
+    <div class="sort-options">
+      <label for="sort-order">並び順:</label>
+      <select id="sort-order">
+        <option value="default">問題順</option>
+        <option value="review-first">復習優先</option>
+        <option value="ref-desc">被参照カウント順</option>
+        <option value="fear-desc">恐怖カウント順</option>
+        <option value="oshi-desc">推しカウント順</option>
+        <option value="like-desc">いいねカウント順</option>
+      </select>
+      <label for="show-untouched-only" class="filter-option">
+        <input type="checkbox" id="show-untouched-only"> 未着手のみ表示
+      </label>
+      <label for="show-archived-only" class="filter-option">
+        <input type="checkbox" id="show-archived-only"> アーカイブ済みを表示
+      </label>
+      <label for="show-favorites-only" class="filter-option">
+        <input type="checkbox" id="show-favorites-only"> お気に入りのみ表示
+      </label>
+    </div>
+    <div class="detail-container" id="detail-container"></div>
+  </div>
+
+  <div id="sync-modal" class="modal">
+    <div class="modal-content">
+      <span class="close-button" id="close-sync-modal">&times;</span>
+      <h2>同期設定 (GAS)</h2>
+      <div class="form-group">
+        <label for="gas-url">GAS Web App URL:</label>
+        <input type="url" id="gas-url" placeholder="https://script.google.com/macros/s/.../exec">
+      </div>
+      <div class="form-group">
+        <label for="exam-date">試験日:</label>
+        <input type="date" id="exam-date">
+      </div>
+      <button id="save-sync-settings" class="primary-button">設定を保存</button>
+      <div class="sync-actions">
+        <button id="manual-sync-upload">手動アップロード</button>
+        <button id="manual-sync-download">手動ダウンロード</button>
+      </div>
+      <p id="sync-status" style="text-align: center; margin-top: 10px;"></p>
+    </div>
+  </div>
+
+  <div id="login-modal" class="modal">
+    <div class="modal-content">
+      <span class="close-button" id="close-login-modal">&times;</span>
+      <h2>ログインまたは新規登録</h2>
+      <div class="form-group">
+        <label for="login-user-id">User ID:</label>
+        <input type="text" id="login-user-id" placeholder="半角英数字">
+      </div>
+      <div class="form-group">
+        <label for="login-password">Password:</label>
+        <input type="password" id="login-password" placeholder="8文字以上">
+      </div>
+      <div class="auth-actions">
+        <button id="login-button" class="primary-button">ログイン</button>
+        <button id="register-button" class="secondary-button">新規登録</button>
+      </div>
+      <p id="auth-status" style="text-align: center; margin-top: 10px;"></p>
+    </div>
+  </div>
+
+  <div id="notification-container" class="hidden"></div>
+
+  <div id="loading-overlay">
+    <div class="loading-spinner"></div>
+    <p id="loading-status-text">データを読み込んでいます...</p>
+  </div>
+
+  <!-- DATA_PLACEHOLDER -->
+  <script type="module" src="app.js"></script>
+</body>
+
+</html>
