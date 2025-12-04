@@ -26,6 +26,23 @@ export function showIndex(isPopState = false) {
             if (!isPopState) firstReviewCategory.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
     }, 100);
+
+    updateRandomUntouchedProblemButtonUI(); // Call the new function here
+}
+
+// Function to update the UI of the random untouched problem button
+function updateRandomUntouchedProblemButtonUI() {
+    const randomUntouchedProblemButton = document.getElementById('random-untouched-problem-button');
+    const untouchedProblemCountSpan = document.getElementById('untouched-problem-count');
+
+    if (randomUntouchedProblemButton && untouchedProblemCountSpan) {
+        if (state.untouchedProblemIds.length > 0) {
+            randomUntouchedProblemButton.style.display = 'inline-block';
+            untouchedProblemCountSpan.textContent = `(${state.untouchedProblemIds.length}問)`;
+        } else {
+            randomUntouchedProblemButton.style.display = 'none';
+        }
+    }
 }
 
 export function renderIndex(categories) {
@@ -56,14 +73,6 @@ export function renderIndex(categories) {
                 }
             });
         }
-    }
-
-    // Update random untouched problem button state
-    if (state.untouchedProblemIds.length > 0) {
-        randomUntouchedProblemButton.style.display = 'inline-block';
-        untouchedProblemCountSpan.textContent = `(${state.untouchedProblemIds.length}問)`;
-    } else {
-        randomUntouchedProblemButton.style.display = 'none';
     }
 
     categoryList.innerHTML = '';
