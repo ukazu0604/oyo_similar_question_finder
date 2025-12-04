@@ -35,6 +35,8 @@ function updateRandomUntouchedProblemButtonUI() {
     const randomUntouchedProblemButton = document.getElementById('random-untouched-problem-button');
     const untouchedProblemCountSpan = document.getElementById('untouched-problem-count');
 
+
+
     if (randomUntouchedProblemButton && untouchedProblemCountSpan) {
         if (state.untouchedProblemIds.length > 0) {
             randomUntouchedProblemButton.style.display = 'inline-block';
