@@ -720,6 +720,15 @@ input:disabled {
   box-shadow: 0 4px 20px var(--color-secondary-shadow);
 }
 
+.problem-panel.highlight-problem {
+  animation: highlight 2s ease-out forwards;
+}
+
+@keyframes highlight {
+  0% { background-color: rgba(255, 255, 0, 0.4); } /* Yellowish flash */
+  100% { background-color: transparent; }
+}
+
 /* トップページで復習項目があるカテゴリをハイライト */
 .middle-category-link.has-review-items .category-name::before {
   content: '●';

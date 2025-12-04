@@ -1,8 +1,8 @@
 import { state } from './state.js';
 import { storage } from './storage.js';
-import { shouldHighlightProblem } from './utils.js';
+import { shouldHighlightProblem, isProblemUntouched } from './utils.js';
 import { navigateToDetail } from './router.js';
-import { renderTotalReviewCount, renderTotalProgress } from './ui-common.js';
+import { renderTotalReviewCount, renderTotalProgress, showNotification } from './ui-common.js';
 
 export function showIndex(isPopState = false) {
     const indexView = document.getElementById('index-view');
@@ -30,6 +30,11 @@ export function showIndex(isPopState = false) {
 
 export function renderIndex(categories) {
     const categoryList = document.getElementById('category-list');
+    const randomUntouchedProblemButton = document.getElementById('random-untouched-problem-button');
+    const untouchedProblemCountSpan = document.getElementById('untouched-problem-count');
+
+    // Reset untouchedProblemIds for each render
+    state.untouchedProblemIds = [];
 
     // 大項目でグループ化
     const groupedByLargeCategory = {};
@@ -40,7 +45,25 @@ export function renderIndex(categories) {
                 groupedByLargeCategory[largeCat] = [];
             }
             groupedByLargeCategory[largeCat].push({ middleCat, problems });
+
+            problems.forEach(item => {
+                // Find untouched problems
+                if (isProblemUntouched(item, state.problemChecks) && !state.archivedProblemIds.includes(`${item.main_problem.出典}-${item.main_problem.問題番号}`)) {
+                    state.untouchedProblemIds.push({
+                        problemId: `${item.main_problem.出典}-${item.main_problem.問題番号}`,
+                        middleCat: middleCat
+                    });
+                }
+            });
         }
+    }
+
+    // Update random untouched problem button state
+    if (state.untouchedProblemIds.length > 0) {
+        randomUntouchedProblemButton.style.display = 'inline-block';
+        untouchedProblemCountSpan.textContent = `(${state.untouchedProblemIds.length}問)`;
+    } else {
+        randomUntouchedProblemButton.style.display = 'none';
     }
 
     categoryList.innerHTML = '';
@@ -250,3 +273,24 @@ export function renderIndex(categories) {
     });
     console.log("renderIndex completed"); // Debug log
 }
+
+// Function to go to a random untouched problem
+function goToRandomUntouchedProblem() {
+    if (state.untouchedProblemIds.length === 0) {
+        showNotification('未着手の問題はありません！', 3000, 'info');
+        return;
+    }
+
+    const randomIndex = Math.floor(Math.random() * state.untouchedProblemIds.length);
+    const randomProblem = state.untouchedProblemIds[randomIndex];
+
+    console.log(`[ランダム問題] ${randomProblem.problemId} (${randomProblem.middleCat}) に移動します。`);
+    navigateToDetail(randomProblem.middleCat, randomProblem.problemId);
+}
+// Add event listener after the DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    const randomUntouchedProblemButton = document.getElementById('random-untouched-problem-button');
+    if (randomUntouchedProblemButton) {
+        randomUntouchedProblemButton.addEventListener('click', goToRandomUntouchedProblem);
+    }
+});

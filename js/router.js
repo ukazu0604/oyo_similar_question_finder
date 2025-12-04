@@ -12,10 +12,10 @@ export function initializeRouter() {
     });
 }
 
-export function navigateToDetail(cat) {
+export function navigateToDetail(cat, problemId = null) {
     console.log(`[履歴操作] history.pushStateを実行します。ハッシュ: #${encodeURIComponent(cat)}`);
-    history.pushState({ category: cat }, `詳細: ${cat}`, `#${encodeURIComponent(cat)}`);
-    showDetail(cat, false);
+    history.pushState({ category: cat, problemId: problemId }, `詳細: ${cat}`, `#${encodeURIComponent(cat)}`);
+    showDetail(cat, false, problemId);
 }
 
 export function navigateToIndex() {

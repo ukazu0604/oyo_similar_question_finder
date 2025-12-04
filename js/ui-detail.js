@@ -3,7 +3,7 @@ import { storage } from './storage.js';
 import { isMobileDevice, shouldHighlightProblem, isProblemUntouched } from './utils.js';
 import { renderTotalReactions, renderTotalProgress, renderTotalReviewCount, showNotification } from './ui-common.js';
 
-export function showDetail(middleCat, isPopState = false) {
+export function showDetail(middleCat, isPopState = false, scrollToProblemId = null) {
     const indexView = document.getElementById('index-view');
     const detailView = document.getElementById('detail-view');
 
@@ -11,10 +11,6 @@ export function showDetail(middleCat, isPopState = false) {
     detailView.style.display = 'block';
     document.getElementById('detail-title').textContent = middleCat;
 
-    // ページ上部にスクロール
-    if (!isPopState) { // popstateからの呼び出しでない場合のみスクロール
-        window.scrollTo(0, 0);
-    }
     const container = document.getElementById('detail-container');
     container.innerHTML = '';
 
@@ -55,7 +51,23 @@ export function showDetail(middleCat, isPopState = false) {
         console.log(`[状態リセット] フィルター状態をリセットしました。`);
     }
 
-    renderProblemList(middleCat);
+    renderProblemList(middleCat); // Call renderProblemList first
+
+    // New logic: Scroll to specific problem if scrollToProblemId is provided
+    if (scrollToProblemId) {
+        // Delay scroll to ensure elements are rendered
+        setTimeout(() => {
+            const problemCardElement = document.querySelector(`.problem-panel[data-problem-id="${scrollToProblemId}"]`);
+            if (problemCardElement) {
+                problemCardElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                // Optional: add temporary highlight
+                problemCardElement.classList.add('highlight-problem');
+                setTimeout(() => {
+                    problemCardElement.classList.remove('highlight-problem');
+                }, 2000);
+            }
+        }, 100);
+    }
 
     // 「未着手のみ表示」チェックボックス
     const untouchedCheckbox = document.getElementById('show-untouched-only');
@@ -227,7 +239,7 @@ export function renderProblemList(middleCat) {
 
         card.className = `problem-card ${needsReview ? 'needs-review' : ''}`;
         let html = `
-          <a href="${mainProblemLink}" target="_blank" class="problem-panel main-problem">
+          <a href="${mainProblemLink}" target="_blank" class="problem-panel main-problem" data-problem-id="${mainProblemUniqueId}">
             <div class="problem-number">${starHtml} 問題: ${main.問題番号}</div>
             <div class="problem-title">${main.問題名}</div>
             <div class="problem-source">出典: ${main.出典} ${reactionHtml}</div>
