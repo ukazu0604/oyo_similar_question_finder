@@ -11,3 +11,6 @@ gas/node_modules/
 
 # Generated files
 03_html_output/problem_data.js
+
+.test_settings.local
+.vscode/
