@@ -85,6 +85,16 @@ export function renderTotalProgress() {
     state.progressTierPercentages = tierPercentages;
     state.totalProblems = totalProblems;
 
+    // For test_stacked_progress_bar in Python Selenium tests
+    state.calculatedCompletedCount = tierCounts.NOT_ARCHIVED_4_CHECKS;
+    state.calculatedArchivedCount = (
+        tierCounts.ARCHIVED_0_CHECKS +
+        tierCounts.ARCHIVED_1_CHECK +
+        tierCounts.ARCHIVED_2_CHECKS +
+        tierCounts.ARCHIVED_3_CHECKS +
+        tierCounts.ARCHIVED_4_CHECKS
+    );
+
     const container = document.getElementById('total-progress-container');
     if (container) {
         let progressBarHtml = '';
@@ -160,6 +170,7 @@ export function renderTotalReviewCount() {
         }
     }
 }
+// --- END: Refactored Statistics Calculation and Rendering ---
 
 export function renderExamCountdown() {
     const examDateStr = state.examDate;

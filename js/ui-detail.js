@@ -413,6 +413,7 @@ export function renderProblemList(middleCat) {
                 }
             });
 
+
             renderTotalReactions();
         });
     });
