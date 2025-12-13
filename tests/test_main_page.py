@@ -2,9 +2,9 @@ import pytest
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 
-def test_content_display(driver, base_url, wait):
+def test_content_display(driver, base_url, wait, setup_gas_url):
     """Verify that the main page loads and displays categories."""
-    driver.get(base_url)
+    # driver.get(base_url) handled by fixture
     
     # Check title
     assert "応用情報技術者試験" in driver.title
@@ -23,9 +23,9 @@ def test_content_display(driver, base_url, wait):
     wait.until(lambda d: model_info.text != "読み込み中...")
     assert model_info.text != ""
 
-def test_progress_bar(driver, base_url, wait):
+def test_progress_bar(driver, base_url, wait, setup_gas_url):
     """Verify that the progress bar container is displayed."""
-    driver.get(base_url)
+    # driver.get(base_url) handled by fixture
     
     progress_container = wait.until(EC.presence_of_element_located((By.ID, "total-progress-container")))
     assert progress_container.is_displayed()

@@ -2,11 +2,15 @@ import pytest
 import time
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support.ui import Select
+from .conftest import wait_for_overlays_to_disappear
 
-def test_navigation(driver, base_url, wait):
+def test_navigation(driver, base_url, wait, setup_gas_url, auto_login_mock):
     """Test navigation from index to detail and back."""
-    driver.get(base_url)
+    # driver.get(base_url) handled by fixture
+    
+    wait_for_overlays_to_disappear(driver)
     
     # Click first category
     category_link = wait.until(EC.element_to_be_clickable((By.CLASS_NAME, "middle-category-link")))
@@ -20,17 +24,17 @@ def test_navigation(driver, base_url, wait):
     assert driver.find_element(By.ID, "index-view").is_displayed() == False
     
     # Click back button
-    back_btn = driver.find_element(By.ID, "back-button")
+    back_btn = wait.until(EC.element_to_be_clickable((By.ID, "back-button")))
     back_btn.click()
     
     # Verify index view
     wait.until(EC.visibility_of_element_located((By.ID, "index-view")))
     assert driver.find_element(By.ID, "detail-view").is_displayed() == False
 
-def test_sort_persistence(driver, base_url, wait):
+def test_sort_persistence(driver, base_url, wait, setup_gas_url, auto_login_mock):
     """Test that sort order is persisted after reload."""
-    driver.get(base_url)
     
+    wait_for_overlays_to_disappear(driver)
     # Go to detail view
     wait.until(EC.element_to_be_clickable((By.CLASS_NAME, "middle-category-link"))).click()
     wait.until(EC.visibility_of_element_located((By.ID, "detail-view")))
@@ -55,10 +59,11 @@ def test_sort_persistence(driver, base_url, wait):
     sort_select = Select(wait.until(EC.presence_of_element_located((By.ID, "sort-order"))))
     assert sort_select.first_selected_option.get_attribute("value") == "like-desc"
 
-def test_checkboxes(driver, base_url, wait):
+def test_checkboxes(driver, base_url, wait, setup_gas_url, auto_login_mock):
     """Test checkbox interaction."""
-    driver.get(base_url)
+    # driver.get(base_url) handled by fixture
     
+    wait_for_overlays_to_disappear(driver)
     # Go to detail view
     wait.until(EC.element_to_be_clickable((By.CLASS_NAME, "middle-category-link"))).click()
     wait.until(EC.visibility_of_element_located((By.ID, "detail-view")))
@@ -68,7 +73,7 @@ def test_checkboxes(driver, base_url, wait):
     
     # Ensure it's clickable (might need to scroll or wait for overlay to go)
     # Also wait for isReadOnlyMode to be false (notification might appear)
-    time.sleep(1) # Wait for init
+    wait.until(lambda d: d.execute_script("return not window.isReadOnlyMode"))
     
     # Click it
     driver.execute_script("arguments[0].click();", checkbox) # Use JS to avoid interception
@@ -80,13 +85,14 @@ def test_checkboxes(driver, base_url, wait):
     driver.execute_script("arguments[0].click();", checkbox)
     wait.until(lambda d: "checked" not in checkbox.get_attribute("class"))
 
-def test_reaction_buttons(driver, base_url, wait):
+def test_reaction_buttons(driver, base_url, wait, setup_gas_url, auto_login_mock):
     """Test reaction buttons."""
-    driver.get(base_url)
+
+    wait_for_overlays_to_disappear(driver)
     wait.until(EC.element_to_be_clickable((By.CLASS_NAME, "middle-category-link"))).click()
     wait.until(EC.visibility_of_element_located((By.ID, "detail-view")))
     
-    time.sleep(1) 
+    wait.until(lambda d: d.execute_script("return not window.isReadOnlyMode")) 
     
     # Find a like button
     btn = driver.find_element(By.CSS_SELECTOR, ".reaction-button[data-reaction-type='like']")
@@ -97,13 +103,14 @@ def test_reaction_buttons(driver, base_url, wait):
     
     wait.until(lambda d: int(count_span.text) == initial_count + 1)
 
-def test_archive(driver, base_url, wait):
+def test_archive(driver, base_url, wait, setup_gas_url, auto_login_mock):
     """Test archive functionality."""
-    driver.get(base_url)
+
+    wait_for_overlays_to_disappear(driver)
     wait.until(EC.element_to_be_clickable((By.CLASS_NAME, "middle-category-link"))).click()
     wait.until(EC.visibility_of_element_located((By.ID, "detail-view")))
     
-    time.sleep(1)
+    wait.until(lambda d: d.execute_script("return not window.isReadOnlyMode"))
     
     archive_btn = driver.find_element(By.CLASS_NAME, "archive-button")
     initial_text = archive_btn.text
@@ -113,13 +120,14 @@ def test_archive(driver, base_url, wait):
     wait.until(lambda d: archive_btn.text != initial_text)
     assert "元に戻す" in archive_btn.text if "アーカイブ" in initial_text else "アーカイブ" in archive_btn.text
 
-def test_favorites(driver, base_url, wait):
+def test_favorites(driver, base_url, wait, setup_gas_url, auto_login_mock):
     """Test favorite toggle."""
-    driver.get(base_url)
+
+    wait_for_overlays_to_disappear(driver)
     wait.until(EC.element_to_be_clickable((By.CLASS_NAME, "middle-category-link"))).click()
     wait.until(EC.visibility_of_element_located((By.ID, "detail-view")))
     
-    time.sleep(1)
+    wait.until(lambda d: d.execute_script("return not window.isReadOnlyMode"))
     
     star = driver.find_element(By.CLASS_NAME, "star-icon")
     driver.execute_script("arguments[0].click();", star)

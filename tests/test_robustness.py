@@ -22,6 +22,14 @@ def test_network_error_handling(driver, base_url, wait):
     driver.execute_script("localStorage.setItem('oyo_gasUrl', 'http://mock-url');")
     driver.refresh()
     
+    # Close default login modal (appears because validation fails due to no mock)
+    try:
+        driver.find_element(By.ID, "close-login-modal").click()
+        time.sleep(0.5)
+    except:
+        pass
+
+    
     wait.until(EC.element_to_be_clickable((By.ID, "sync-settings-button"))).click()
     
     # Mock network error
@@ -42,6 +50,14 @@ def test_empty_category_handling(driver, base_url, wait):
     
     # Inject empty data
     driver.get(base_url)
+    
+    # Close default login modal
+    try:
+        driver.find_element(By.ID, "close-login-modal").click()
+        time.sleep(0.5)
+    except:
+        pass
+
     driver.execute_script("""
         window.PROBLEM_DATA = {
             "model": "test",

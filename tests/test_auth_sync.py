@@ -30,12 +30,22 @@ def mock_fetch_error(driver, error_message):
         };
     """ % error_message)
 
-def test_login_success(driver, base_url, wait):
+def test_login_success(driver, base_url, wait, setup_gas_url):
     """Test successful login."""
-    driver.get(base_url)
+    # The setup_gas_url fixture already navigates to the base_url.
     
     # Open login modal
-    wait.until(EC.element_to_be_clickable((By.ID, "auth-button"))).click()
+    # Ensure GAS URL is set to avoid blocking modal
+    driver.execute_script("if (!localStorage.getItem('oyo_gasUrl')) { localStorage.setItem('oyo_gasUrl', 'http://mock-url'); localStorage.setItem('oyo_userId', ''); window.location.reload(); }")
+    
+    # Check if login modal is already open (auto-open behavior)
+    try:
+        modal = driver.find_element(By.ID, "login-modal")
+        if not modal.is_displayed():
+            wait.until(EC.element_to_be_clickable((By.ID, "auth-button"))).click()
+    except:
+        wait.until(EC.element_to_be_clickable((By.ID, "auth-button"))).click()
+
     wait.until(EC.visibility_of_element_located((By.ID, "login-modal")))
     
     # Mock successful login response
@@ -50,7 +60,11 @@ def test_login_success(driver, base_url, wait):
     # Fill and submit
     driver.find_element(By.ID, "login-user-id").send_keys("testuser")
     driver.find_element(By.ID, "login-password").send_keys("password")
-    driver.find_element(By.ID, "login-button").click()
+    
+    # Mock window.location.reload to prevent page reload from clearing our mocks
+    driver.execute_script("window.location.reload = function() { console.log('Reload blocked by test'); };")
+    
+    wait.until(EC.element_to_be_clickable((By.ID, "login-button"))).click()
     
     # Verify success message or modal close
     # The app reloads on success, so we check for that or the notification
@@ -73,49 +87,77 @@ def test_login_success(driver, base_url, wait):
     # However, if TEST_GAS_URL is not set, it might fail.
     # But the test should verify that the login *action* succeeded.
 
-def test_login_failure(driver, base_url, wait):
+def test_login_failure(driver, base_url, wait, setup_gas_url):
     """Test login failure."""
-    driver.get(base_url)
+    # The setup_gas_url fixture already navigates to the base_url.
     
-    wait.until(EC.element_to_be_clickable((By.ID, "auth-button"))).click()
+    # Check if login modal is already open (auto-open behavior)
+    try:
+        modal = driver.find_element(By.ID, "login-modal")
+        if not modal.is_displayed():
+            wait.until(EC.element_to_be_clickable((By.ID, "auth-button"))).click()
+    except:
+        wait.until(EC.element_to_be_clickable((By.ID, "auth-button"))).click()
+
     wait.until(EC.visibility_of_element_located((By.ID, "login-modal")))
     
     mock_fetch_error(driver, "Invalid credentials")
     
     driver.find_element(By.ID, "login-user-id").send_keys("wronguser")
     driver.find_element(By.ID, "login-password").send_keys("wrongpass")
-    driver.find_element(By.ID, "login-button").click()
+    wait.until(EC.element_to_be_clickable((By.ID, "login-button"))).click()
     
     status = wait.until(lambda d: d.find_element(By.ID, "auth-status").text)
     assert "Invalid credentials" in status
 
-def test_logout(driver, base_url, wait):
+def test_logout(driver, base_url, wait, setup_gas_url):
     """Test logout."""
-    driver.get(base_url)
-    
-    # Manually set token to simulate logged in state
+    # The setup_gas_url fixture already navigates to the base_url.
+    # App starts with login modal open (because no token). Close it first.
+    try:
+        driver.find_element(By.ID, "close-login-modal").click()
+        time.sleep(0.5) # Wait for animation
+    except:
+        pass
+
+    # Manually set token to simulate logged in state without refresh (refresh clears mocks/state)
     driver.execute_script("localStorage.setItem('oyo_accessToken', 'mock_token');")
     driver.execute_script("localStorage.setItem('oyo_userId', 'testuser');")
-    driver.refresh()
+    # Update internal storage object if exposed, or trigger storage event?
+    # Since we can't easily trigger the reactivity from outside without refresh, 
+    # and refresh kills the mock... 
+    # Actually, verify if auth-button click reads from localStorage directly?
+    # app.js: if (storage.accessToken) ... 
+    # storage.js reads from localStorage on property access. So setting localStorage is enough!
     
     # Click auth button (now logout)
     # Handle confirm dialog
     driver.execute_script("window.confirm = () => true;")
     
+    # Wait for any notification to disappear
+    wait.until(EC.invisibility_of_element_located((By.CLASS_NAME, "notification-message")))
+
     wait.until(EC.element_to_be_clickable((By.ID, "auth-button"))).click()
     
     # Verify token removed
     wait.until(lambda d: d.execute_script("return localStorage.getItem('oyo_accessToken');") is None)
 
-def test_manual_sync_upload(driver, base_url, wait):
+def test_manual_sync_upload(driver, base_url, wait, setup_gas_url):
     """Test manual upload button."""
-    driver.get(base_url)
+    # The setup_gas_url fixture already navigates to the base_url.
     
+    # Close default login modal
+    try:
+        driver.find_element(By.ID, "close-login-modal").click()
+        time.sleep(0.5)
+    except:
+        pass
+
     # Login first
     driver.execute_script("localStorage.setItem('oyo_accessToken', 'mock_token');")
     driver.execute_script("localStorage.setItem('oyo_userId', 'testuser');")
     driver.execute_script("localStorage.setItem('oyo_gasUrl', 'http://mock-url');")
-    driver.refresh()
+    # No refresh, just state injection
     
     # Open sync modal
     wait.until(EC.element_to_be_clickable((By.ID, "sync-settings-button"))).click()
@@ -127,7 +169,8 @@ def test_manual_sync_upload(driver, base_url, wait):
     }
     mock_fetch_success(driver, mock_response)
     
-    # Click upload
+    # Wait for any notification to disappear (e.g. "GAS URL..." or login prompts)
+    wait.until(EC.invisibility_of_element_located((By.CLASS_NAME, "notification-message")))
     wait.until(EC.element_to_be_clickable((By.ID, "manual-sync-upload"))).click()
     
     # Verify status message
