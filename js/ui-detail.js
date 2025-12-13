@@ -250,7 +250,9 @@ export function renderProblemList(middleCat) {
 
         // Similar Problems
         const filteredSimilars = item.similar_problems
-            ? item.similar_problems.filter(sim => sim.similarity >= 0.80)
+            ? item.similar_problems
+                .sort((a, b) => b.similarity - a.similarity)
+                .filter((sim, index) => index < 5 || sim.similarity >= 0.9)
             : [];
 
         if (filteredSimilars.length > 0) {

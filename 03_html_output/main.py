@@ -53,16 +53,23 @@ def compute_similarities(df, vector_column):
             sims = []
             for j, score in enumerate(sim_matrix[i]):
                 if i != j:
-                    # 類似度80%以上をすべて抽出
-                    if float(score) >= 0.80:
-                        sims.append({
-                            "similarity": float(score),
-                            "data": select_output_data(items[j]['data'])
-                        })
+                    sims.append({
+                        "similarity": float(score),
+                        "data": select_output_data(items[j]['data'])
+                    })
+            
+            # Sort by similarity descending
             sims.sort(key=lambda x: x['similarity'], reverse=True)
+            
+            # Filter: Top 5 OR Similarity >= 0.9
+            filtered_sims = []
+            for idx, sim in enumerate(sims):
+                if idx < 5 or sim['similarity'] >= 0.9:
+                    filtered_sims.append(sim)
+            
             category_results.append({
                 "main_problem": select_output_data(item['data']),
-                "similar_problems": sims  # 全件出力 (閾値判定済み)
+                "similar_problems": filtered_sims
             })
         results["categories"][middle_cat] = category_results
 
